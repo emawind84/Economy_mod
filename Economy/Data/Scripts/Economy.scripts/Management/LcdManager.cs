@@ -360,7 +360,7 @@
             Testline1(writer, "zzzzzzzz|");
             Testline1(writer, "\xe008\xe008\xe008\xe008|");
 
-            writer.AddPublicLine(TextPanelWriter.GetStringTrimmed(138f, "                   0"));
+            writer.AddPublicLine(writer.GetStringTrimmed(138f, "                   0"));
             writer.AddPublicRightLine(138f, "...123");
 
             //Testline2(writer, "\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008\xe008!!!");
@@ -389,14 +389,14 @@
 
         private static void Testline1(TextPanelWriter writer, string text)
         {
-            var size = TextPanelWriter.MeasureString(text);
+            var size = writer.MeasureString(text);
             writer.AddPublicText(text);
             writer.AddPublicLine("  " + size.ToString(EconomyScript.ServerCulture));
         }
 
         private static void Testline2(TextPanelWriter writer, string text)
         {
-            var size = TextPanelWriter.MeasureString(text);
+            var size = writer.MeasureString(text);
             writer.AddPublicLine(text);
             writer.AddPublicLine(size.ToString(EconomyScript.ServerCulture));
         }
