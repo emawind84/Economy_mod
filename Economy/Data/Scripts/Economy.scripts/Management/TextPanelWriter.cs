@@ -18,14 +18,14 @@
         // Spacing looks to be something Keen planned to implement as configurable to the Font, but haven't and left Spacing defaulted as 1.
         private const int Spacing = 1;
 
-        private readonly int WhitespaceWidth;
+        private int WhitespaceWidth;
 
         private const int DefaultCharWidth = 40;
 
         public const int LcdLineWidth = 652; // this is approximate.
 
         private const string Elipse = "\x2026"; // the ... symbol.
-        private readonly int ElipseSize;
+        private int ElipseSize;
 
         private readonly IMyTextPanel _panel;
         private readonly StringBuilder _publicString;
@@ -66,9 +66,6 @@
             _isWide = _panel.BlockDefinition.SubtypeName.IndexOf("Wide", StringComparison.InvariantCultureIgnoreCase) >= 0 
                 || _panel.BlockDefinition.SubtypeName == "SmallMonitor" || _panel.BlockDefinition.SubtypeName == "LargeMonitor"; // Support for Mod 403922024.
             _publicString = new StringBuilder();
-
-            WhitespaceWidth = MeasureString(" ");
-            ElipseSize = MeasureString(Elipse);
             Clear();
         }
 
@@ -251,7 +248,9 @@
         {
             try
             {
-                FontSize = _panel.GetValueFloat("FontSize");
+                WhitespaceWidth = MeasureString(" ");
+                ElipseSize = MeasureString(Elipse);
+                FontSize = _panel.FontSize;
             }
             catch (Exception ex)
             {
@@ -472,7 +471,11 @@
         private byte MeasureChar(char c)
         {
             byte width;
-            if (!FontCharWidth.TryGetValue(c, out width) || _panel.Font.Equals("Monospace"))
+            if (_panel.Font.Equals("Monospace"))
+            {
+                width = 24;
+            }
+            else if (!FontCharWidth.TryGetValue(c, out width))
             {
                 width = DefaultCharWidth;
             }
