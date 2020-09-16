@@ -178,7 +178,8 @@
         BuyPrice = 2,
         SellPrice = 4,
         Blacklisted = 8,
-        StockLimit = 16
+        StockLimit = 16,
+        PriceAdjustModel = 32
     }
 
     /// <summary>
@@ -361,6 +362,13 @@
     {
         Buy,
         Sell
+    }
+
+    public enum PriceAdjustModel : byte
+    {
+        Neutral,
+        Supply,
+        Demand
     }
 
     /// <summary>

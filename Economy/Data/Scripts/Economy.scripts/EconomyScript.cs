@@ -57,7 +57,7 @@ namespace Economy.scripts
         //set is for admins to configure things like on hand, npc market pricing, toggle blacklist
         //Examples: eg /set 10000 ice    or /set blacklist ice   or /set buy item price
 
-        const string SetPattern = @"(?<command>/set)(?:\s+(?:(?:""(?<market>[^""]|.*?)"")|(?<market>[^\s]*)))?\s+(?:(?<qty>[+-]?((\d+(\.\d*)?)|(\.\d+)))|(?<blacklist>blacklist)|(?<buy>buy)|(?<sell>sell)|(?<limit>limit))\s+(?:(?:""(?<item>[^""]|.*?)"")|(?<item>.*(?=\s+\d+\b))|(?<item>.*$))(?:\s+(?<price>[+-]?((\d+(\.\d*)?)|(\.\d+))))?";
+        const string SetPattern = @"(?<command>/set)(?:\s+(?:(?:""(?<market>[^""]|.*?)"")|(?<market>[^\s]*)))?\s+(?:(?<qty>[+-]?((\d+(\.\d*)?)|(\.\d+)))|(?<blacklist>blacklist)|(?<buy>buy)|(?<sell>sell)|(?<limit>limit)|(?:pam\s+(?<pam>demand|supply|neutral)))\s+(?:(?:""(?<item>[^""]|.*?)"")|(?<item>.*(?=\s+\d+\b))|(?<item>.*$))(?:\s+(?<price>[+-]?((\d+(\.\d*)?)|(\.\d+))))?";
 
         /// <summary>
         ///  buy pattern no "all" required.   reusing sell  
@@ -1103,8 +1103,9 @@ namespace Economy.scripts
                     bool setsell = match.Groups["sell"].Value.Equals("sell", StringComparison.InvariantCultureIgnoreCase);
                     bool setlimit = match.Groups["limit"].Value.Equals("limit", StringComparison.InvariantCultureIgnoreCase);
                     bool blacklist = match.Groups["blacklist"].Value.Equals("blacklist", StringComparison.InvariantCultureIgnoreCase);
+                    bool setPam = !string.IsNullOrEmpty(match.Groups["pam"].Value);
                     decimal amount = 0;
-                    if (!blacklist && !setbuy && !setsell) // must be setting on hand
+                    if (!blacklist && !setbuy && !setsell && !setPam) // must be setting on hand
                         if (!decimal.TryParse(match.Groups["qty"].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out amount))
                             amount = 0;
 
@@ -1145,6 +1146,21 @@ namespace Economy.scripts
                     else if (setlimit)
                     {
                         MessageSet.SendMessageStockLimit(EconomyConsts.NpcMerchantId, marketZone, content.TypeId.ToString(), content.SubtypeName, amount);
+                    }
+                    else if (setPam)
+                    {
+                        var pamModel = match.Groups["pam"].Value;
+                        if (pamModel == "demand")
+                            MessageSet.SendMessagePriceAdjustModel(EconomyConsts.NpcMerchantId, marketZone, content.TypeId.ToString(), content.SubtypeName, PriceAdjustModel.Demand);
+                        else if (pamModel == "supply")
+                            MessageSet.SendMessagePriceAdjustModel(EconomyConsts.NpcMerchantId, marketZone, content.TypeId.ToString(), content.SubtypeName, PriceAdjustModel.Supply);
+                        else if (pamModel == "neutral")
+                            MessageSet.SendMessagePriceAdjustModel(EconomyConsts.NpcMerchantId, marketZone, content.TypeId.ToString(), content.SubtypeName, PriceAdjustModel.Neutral);
+                        else
+                        {
+                            MyAPIGateway.Utilities.ShowMessage("SET", "Wrong model.");
+                            MyAPIGateway.Utilities.ShowMessage("SET", "eg /set pam demand rifle, /set pam supply rifle, /set pam neutral rifle");
+                        }
                     }
                     else //no we must want to set on hand?
                     {
