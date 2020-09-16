@@ -36,5 +36,8 @@
         [DefaultValue(typeof(decimal), "79228162514264337593543950335")] // decimal.MaxValue
         [ProtoMember(7)]
         public decimal StockLimit { get; set; }
+
+        [ProtoMember(8)]
+        public string PriceAdjustModel { get; set; }
     }
 }

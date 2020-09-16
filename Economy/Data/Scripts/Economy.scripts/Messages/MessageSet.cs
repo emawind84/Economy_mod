@@ -73,6 +73,9 @@
         [ProtoMember(209)]
         public decimal ItemStockLimit;
 
+        [ProtoMember(210)]
+        public PriceAdjustModel PriceAdjustModel;
+
         #endregion
 
         public static void SendMessage(ulong marketId, string marketZone, string itemTypeId, string itemSubTypeName, SetMarketItemType setType, decimal itemQuantity, decimal itemBuyPrice, decimal itemSellPrice)
@@ -98,6 +101,11 @@
         public static void SendMessageStockLimit(ulong marketId, string marketZone, string itemTypeId, string itemSubTypeName, decimal itemStockLimit)
         {
             ConnectionHelper.SendMessageToServer(new MessageSet { MarketId = marketId, MarketZone = marketZone, ItemTypeId = itemTypeId, ItemSubTypeName = itemSubTypeName, SetType = SetMarketItemType.StockLimit, ItemStockLimit = itemStockLimit});
+        }
+
+        public static void SendMessagePriceAdjustModel(ulong marketId, string marketZone, string itemTypeId, string itemSubTypeName, PriceAdjustModel priceAdjustModel)
+        {
+            ConnectionHelper.SendMessageToServer(new MessageSet { MarketId = marketId, MarketZone = marketZone, ItemTypeId = itemTypeId, ItemSubTypeName = itemSubTypeName, SetType = SetMarketItemType.PriceAdjustModel, PriceAdjustModel = priceAdjustModel});
         }
 
         public override void ProcessClient()
@@ -240,7 +248,7 @@
 
                 if (SetType.HasFlag(SetMarketItemType.StockLimit))
                 {
-                    if (ItemStockLimit > 0)
+                    if (ItemStockLimit >= 0)
                     {
                         marketItem.StockLimit = ItemStockLimit;
                         if (ItemStockLimit == decimal.MaxValue)
@@ -254,6 +262,12 @@
                     }
                 }
 
+                if (SetType.HasFlag(SetMarketItemType.PriceAdjustModel))
+                {
+                    marketItem.PriceAdjustModel = PriceAdjustModel.ToString();
+                    msg.AppendFormat("Price adjust model set to {0}", marketItem.PriceAdjustModel);
+                }
+
                 msg.AppendLine();
                 msg.AppendLine();
             }
@@ -261,7 +275,7 @@
             #region update config for the item
 
             MarketItemStruct configItem = null;
-            if (player.IsAdmin() && MarketId == EconomyConsts.NpcMerchantId)
+            if (player.IsAdmin() && MarketId == EconomyConsts.NpcMerchantId && MarketZone == "*")
                 configItem = EconomyScript.Instance.ServerConfig.DefaultPrices.FirstOrDefault(e => e.TypeId == ItemTypeId && e.SubtypeName == ItemSubTypeName);
 
             if (configItem != null)
@@ -289,6 +303,7 @@
                 {
                     configItem.IsBlacklisted = !configItem.IsBlacklisted;
                     msg.AppendFormat("Config updated Blacklist to {0}", configItem.IsBlacklisted ? "On" : "Off");
+                    msg.AppendLine();
 
                     // If config blacklisted, then all markets should be updated.
                     if (configItem.IsBlacklisted)

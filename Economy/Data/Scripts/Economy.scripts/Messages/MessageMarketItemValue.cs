@@ -82,13 +82,13 @@
                 if (Quantity == 1) {
                     // set reply to report back the current buy and sell price only since that is all we asked for
                     reply = string.Format("Player TRADE - You can buy each '{0}' for {1}, or sell it back for {2} each.", DisplayName, item.SellPrice, item.BuyPrice);
-                    reply += "\r\n" + string.Format("NPC TRADE - You can buy each '{0}' for {1}, or sell it back for {2} each.", DisplayName, EconDataManager.PriceAdjust(item.SellPrice, item.Quantity, PricingBias.Sell), EconDataManager.PriceAdjust(item.BuyPrice, item.Quantity, PricingBias.Buy));
+                    reply += "\r\n" + string.Format("NPC TRADE - You can buy each '{0}' for {1}, or sell it back for {2} each.", DisplayName, EconDataManager.PriceAdjust(item, item.Quantity, PricingBias.Sell), EconDataManager.PriceAdjust(item, item.Quantity, PricingBias.Buy));
                 }
                 else {
                     // value BLAH 12 - we must want to know how much we make/pay for buying/selling 12
                     // set reply to current buy and sell price multiplied by the requested qty.
                     reply = string.Format("Player TRADE - You can buy {0} '{1}' for {2} or sell it back for {3} each.", Quantity, DisplayName, item.SellPrice * Quantity, item.BuyPrice * Quantity);
-                    reply += "\r\n" + string.Format("NPC TRADE - You can buy {0} '{1}' for {2} or sell it back for {3} each.", Quantity, DisplayName, EconDataManager.PriceAdjust(item.SellPrice, item.Quantity, PricingBias.Sell) * Quantity, EconDataManager.PriceAdjust(item.BuyPrice, item.Quantity, PricingBias.Buy) * Quantity);
+                    reply += "\r\n" + string.Format("NPC TRADE - You can buy {0} '{1}' for {2} or sell it back for {3} each.", Quantity, DisplayName, EconDataManager.PriceAdjust(item, item.Quantity, PricingBias.Sell) * Quantity, EconDataManager.PriceAdjust(item, item.Quantity, PricingBias.Buy) * Quantity);
                 }
             }
             MessageClientTextMessage.SendMessage(SenderSteamId, "VALUE", reply);
