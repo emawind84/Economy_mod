@@ -1149,12 +1149,12 @@ namespace Economy.scripts
                     }
                     else if (setPam)
                     {
-                        var pamModel = match.Groups["pam"].Value;
-                        if (pamModel == "demand")
+                        string pamModel = match.Groups["pam"].Value;
+                        if (pamModel.Equals(PriceAdjustModel.Demand.ToString(), StringComparison.InvariantCultureIgnoreCase))
                             MessageSet.SendMessagePriceAdjustModel(EconomyConsts.NpcMerchantId, marketZone, content.TypeId.ToString(), content.SubtypeName, PriceAdjustModel.Demand);
-                        else if (pamModel == "supply")
+                        else if (pamModel.Equals(PriceAdjustModel.Supply.ToString(), StringComparison.InvariantCultureIgnoreCase))
                             MessageSet.SendMessagePriceAdjustModel(EconomyConsts.NpcMerchantId, marketZone, content.TypeId.ToString(), content.SubtypeName, PriceAdjustModel.Supply);
-                        else if (pamModel == "neutral")
+                        else if (pamModel.Equals(PriceAdjustModel.Neutral.ToString(), StringComparison.InvariantCultureIgnoreCase))
                             MessageSet.SendMessagePriceAdjustModel(EconomyConsts.NpcMerchantId, marketZone, content.TypeId.ToString(), content.SubtypeName, PriceAdjustModel.Neutral);
                         else
                         {
@@ -1991,7 +1991,21 @@ namespace Economy.scripts
                             if (MyAPIGateway.Session.Player.IsAdmin()) { MyAPIGateway.Utilities.ShowMessage("Admin eHelp", "/reset resets your balance to 100"); return true; }
                             else { return false; }
                         case "set":
-                            if (MyAPIGateway.Session.Player.IsAdmin()) { MyAPIGateway.Utilities.ShowMessage("Admin eHelp", "/set # X  Sets the on hand amount of item (X) to amount  (#) in the NPC market. Eventually will set other settings too."); return true; }
+                            if (MyAPIGateway.Session.Player.IsAdmin()) {
+                                helpreply = "Set different item related properties\r\n" +
+                                "/set [market | *] # item  -  Allows admin to manually set the on hand stock for a particular market item.\r\n" +
+                                "/set [market | *] buy item #  -  Allows admin to manually set the buy (from player) price of a particular market item.\r\n" +
+                                "/set [market | *] sell item #  -  Allows admin to manually set the sell (to player) price of a particular market item.\r\n" +
+                                "/set [market | *] limit item #  -  Sets the the maximum amount to limit on hand stock - stops buying when this number reached - use 'MAX' for no limit\r\n" +
+                                "/set [market | *] blacklist item  -  Allows admin to toggle if an item is allowed to be traded, or not (blacklisted).\r\n" +
+                                "/set [market | *] pam demand | supply | neutral item\r\n" +
+                                "Set the type of pricing model you want for a particular product\r\n" +
+                                "to encourage buying or selling based on the stock on hand.\r\n" +
+                                "*  -  Set the property for all the market included the default";
+                                MyAPIGateway.Utilities.ShowMessage("Admin eHelp", "/set # X  Sets the on hand amount of item (X) to amount  (#) in the NPC market and more.");
+                                MyAPIGateway.Utilities.ShowMissionScreen("Economy Help", "", "set command", helpreply, null, "Close");
+                                return true;
+                            }
                             else { return false; }
                         case "bal":
                             MyAPIGateway.Utilities.ShowMessage("eHelp", "/bal Displays your bank balance");
@@ -2099,7 +2113,7 @@ namespace Economy.scripts
                                 " /hud cargo on|off (Display available cargo space for trading)\r\n" +
                                 " /hud agency on|off (Display your current agency/faction)\r\n";
                             MyAPIGateway.Utilities.ShowMessage("eHelp", "/hud #|balance|region|GPS|contracts|cargo|agency  #on/off");
-                            MyAPIGateway.Utilities.ShowMissionScreen("Economy Help", "", "hud command", helpreply, null, "Groovy");
+                            MyAPIGateway.Utilities.ShowMissionScreen("Economy Help", "", "hud command", helpreply, null, "Close");
                             return true;
                         case "value":
                             MyAPIGateway.Utilities.ShowMessage("eHelp", "/value X Y - Looks up item [X] of optional quantity [Y] and reports the buy and sell value.");
