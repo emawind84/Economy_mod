@@ -247,8 +247,6 @@
 
         public static void FetchMission(int missionId)
         {
-            EconomyScript.Instance.ClientConfig.MissionId++;
-
             if (missionId < 0) // debug clear.
             {
                 Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogVisible(false);
@@ -266,7 +264,8 @@
             }
             else
             {
-                Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlog(true, currentMission.GetName());
+                currentMission.AddGps();
+                Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlog(true, currentMission.MissionId + ". " + currentMission.GetName());
                 Sandbox.Game.MyVisualScriptLogicProvider.AddQuestlogDetail(currentMission.GetDescription());
             }
         }
@@ -365,6 +364,7 @@
 
             if (success)
             {
+                /*
                 clientConfig.SeenBriefing = false; //reset the check that tests if player has seen briefing and/or had gps created already
                 clientConfig.CompletedMissions++; //increment the completed missions counter (note this is not intended to be 'current' mission just a counter)
                                                   //it will probably only be used for current mission "chain" tracking later on
@@ -373,15 +373,14 @@
                     clientConfig.ClientHudSettings.ShowContractCount = false;
                     clientConfig.ClientHudSettings.ShowPosition = false;
                 }
+                */
 
                 MessageMission.SendMissionComplete(currentMission);
 
                 clientConfig.LazyMissionText = clientConfig.MissionId + " Mission: completed";
 
-                // TODO: is a bad idea to increment. We need to fetch the next valid mission, or reset to blank.
-                //FetchMission(-1); 
+                //FetchMission(-1);
                 FetchMission(0);
-                //FetchMission(clientConfig.MissionId + 1);
                 UpdateHud();
             }
         }

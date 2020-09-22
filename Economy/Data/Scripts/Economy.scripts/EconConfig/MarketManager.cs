@@ -320,12 +320,22 @@
         /// <returns></returns>
         public static List<MarketStruct> FindMarketsFromName(string marketname)
         {
+            return ClientFindMarketsFromName(EconomyScript.Instance.Data.Markets, marketname);
+        }
+
+        /// <summary>
+        /// Find a market of the specified name, trying exact match first, then case insensative, then partial string.
+        /// </summary>
+        /// <param name="marketname"></param>
+        /// <returns></returns>
+        public static List<MarketStruct> ClientFindMarketsFromName(List<MarketStruct> markets, string marketname)
+        {
             var list = new List<MarketStruct>();
 
             if (string.IsNullOrEmpty(marketname))
                 return list;
 
-            foreach (var market in EconomyScript.Instance.Data.Markets)
+            foreach (var market in markets)
             {
                 if (market.DisplayName == marketname)
                     list.Add(market);
@@ -333,7 +343,7 @@
 
             if (list.Count == 0)
             {
-                foreach (var market in EconomyScript.Instance.Data.Markets)
+                foreach (var market in markets)
                 {
                     if (market.DisplayName.Equals(marketname, StringComparison.InvariantCultureIgnoreCase))
                         list.Add(market);
@@ -342,7 +352,7 @@
 
             if (list.Count == 0)
             {
-                foreach (var market in EconomyScript.Instance.Data.Markets)
+                foreach (var market in markets)
                 {
                     if (market.DisplayName.IndexOf(marketname, StringComparison.InvariantCultureIgnoreCase) >= 0)
                         list.Add(market);
@@ -406,6 +416,28 @@
             var closetEntity = list.OrderBy(f => f.Value).First().Key;
             var closetMarket = EconomyScript.Instance.Data.Markets.First(m => m.MarketId == player.SteamUserId && (!isOpen.HasValue || m.Open == isOpen.Value) && m.EntityId == closetEntity.EntityId);
             return closetMarket;
+        }
+
+        public static Vector3D FindPositionFromMarket(MarketStruct market)
+        {
+            Vector3D position = Vector3D.Zero;
+            if (market.MarketZoneType == MarketZoneType.EntitySphere)
+            {
+                IMyEntity entity;
+                if (!MyAPIGateway.Entities.TryGetEntityById(market.EntityId, out entity))
+                {
+                    position = entity.GetPosition();
+                }
+            }
+            else if (market.MarketZoneType == MarketZoneType.FixedSphere)
+            {
+                position = market.MarketZoneSphere.Center;
+            }
+            else if (market.MarketZoneType == MarketZoneType.FixedBox)
+            {
+                position = market.MarketZoneBox.Value.Center;
+            }
+            return position;
         }
 
         public static bool IsItemBlacklistedOnServer(string itemTypeId, string itemSubTypeName)

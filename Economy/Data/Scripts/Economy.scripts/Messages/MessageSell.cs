@@ -361,7 +361,13 @@
                             if (UseBankBuyPrice)
                                 // The player is selling, but the *Market* will *buy* it from the player at this price.
                                 // if we are not using price scaling OR the market we are trading with isn't owned by the NPC ID, dont change price. Otherwise scale.
-                                if (SpaceCredit || !EconomyScript.Instance.ServerConfig.PriceScaling || accountToBuy.SteamId != EconomyConsts.NpcMerchantId) ItemPrice = marketItem.BuyPrice; else ItemPrice = EconDataManager.PriceAdjust(marketItem.BuyPrice, marketItem.Quantity, PricingBias.Buy);
+                                if (SpaceCredit || !EconomyScript.Instance.ServerConfig.PriceScaling || accountToBuy.SteamId != EconomyConsts.NpcMerchantId)
+                                {
+                                    ItemPrice = marketItem.BuyPrice;
+                                }
+                                else {
+                                    ItemPrice = EconDataManager.PriceAdjust(marketItem.BuyPrice, marketItem.Quantity, PricingBias.Buy);
+                                }
                                 // if we are using price scaling adjust the price before our NPC trade (or check player for subsidy pricing)
                         }
 
@@ -415,6 +421,8 @@
 
                                     MessageUpdateClient.SendAccountMessage(accountToBuy);
                                     MessageUpdateClient.SendAccountMessage(accountToSell);
+
+                                    MissionManager.OnSellCommandExecuted?.Invoke(SenderSteamId, accountToBuy.SteamId, ItemTypeId, ItemSubTypeName, ItemQuantity);
                                 }
                                 else
                                 {

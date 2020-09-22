@@ -22,6 +22,7 @@ namespace Economy.scripts
     using Economy.scripts.EconStructures;
     using Economy.scripts.Management;
     using Economy.scripts.Messages;
+    using Economy.scripts.MissionStructures;
     using Sandbox.Common;
     using Sandbox.Common.ObjectBuilders;
     using Sandbox.Definitions;
@@ -124,6 +125,16 @@ namespace Economy.scripts
         /// pattern defines how to retrieve a price list.
         /// </summary>
         const string PriceListPattern = @"(?<command>/pricelist)(?:(?:\s+""(?<zonename>[^""]|.*?)"")?)(?:\s+(?<key>[^\s]+)|\b)*";
+
+        /// <summary>
+        /// pattern defines how to open a delivery mission (contract).
+        /// </summary>
+        const string MissionDeliverOpenPattern = @"(?:/contract)\s+(?:open)\s+(?<type>delivery)\s+(?<qty>((\d+(\.\d*)?)|(\.\d+)))\s+(?:(?:""(?<item>[^""]|.*?)"")|(?<item>[^\s]*))\s+(?:(?:""(?<market>[^""]|.*?)"")|(?<market>[^\s]*))(?:\s+(?<reward>[+]?((\d+(\.\d*)?)|(\.\d+))))";
+
+        /// <summary>
+        /// pattern defines how to open a destroy mission
+        /// </summary>
+        const string MissionDestroyOpenPattern = @"(?:/contract)\s+(?:open)\s+(?<type>destroy)(?:\s+((?:""(?<name>[^""]|.*?)"")|(?<name>[^\s]*)))?(?:\s+(?<reward>[+]?((\d+(\.\d*)?)|(\.\d+))))";
 
         #endregion
 
@@ -493,6 +504,7 @@ namespace Economy.scripts
                 try
                 {
                     // Any processing needs to occur in here, as it will be on the main thread, and hopefully thread safe.
+                    MissionManager.CheckMissionTimeouts();
                     MarketManager.CheckTradeTimeouts();
                 }
                 finally
@@ -581,74 +593,204 @@ namespace Economy.scripts
 
             if (ClientConfig.ServerConfig.EnableMissions)
             {
-                //placeholder for testing mission success triggers without using a timer yet
-                if (split[0].Equals("/mission", StringComparison.InvariantCultureIgnoreCase) && MyAPIGateway.Session.Player.IsAdmin() && split.Length >= 2)
+                if (split[0].Equals("/contract", StringComparison.InvariantCultureIgnoreCase) && split.Length >= 2)
                 {
-                    int missionId;
-                    if (split.Length >= 2 && int.TryParse(split[1], out missionId))
+                    match = Regex.Match(messageText, MissionDeliverOpenPattern, RegexOptions.IgnoreCase);
+                    if (match.Success)
                     {
-                        // TODO: this is to become a server call to create and assign the specifed mission.
-                        HudManager.FetchMission(missionId);
-                        MyAPIGateway.Utilities.ShowMessage("debug", "Setting mission {0}", missionId);
-                    }
-                    MyAPIGateway.Utilities.ShowMessage("debug", "You are at mission: {0}", ClientConfig.MissionId);
+                        var marketName = match.Groups["market"].Value;
+                        var itemName = match.Groups["item"].Value;
+                        var reward = Convert.ToDecimal(match.Groups["reward"].Value, CultureInfo.InvariantCulture);
+                        var itemQuantity = Convert.ToDecimal(match.Groups["qty"].Value, CultureInfo.InvariantCulture);
 
-                    // Update the hud after having made a change to the selected mission.
+                        var markets = MarketManager.ClientFindMarketsFromName(EconomyScript.Instance.ClientConfig.Markets, marketName);
+                        if (markets.Count() != 1)
+                        {
+                            MyAPIGateway.Utilities.ShowMessage("Server", "There is no market registered under this name");
+                            return true;
+                        }
+
+                        MyObjectBuilder_Base content;
+                        Dictionary<string, MyDefinitionBase> options;
+                        if (!Support.FindPhysicalParts(itemName, out content, out options))
+                        {
+                            MyAPIGateway.Utilities.ShowMessage("Server", "The product specified doesn't seem valid");
+                            return true;
+                        }
+
+                        MissionBaseStruct newMission = new DeliverItemToTradeZoneMission
+                        {
+                            OfferDate = DateTime.Now,
+                            ItemQuantity = itemQuantity,
+                            ItemSubTypeName = content.SubtypeName,
+                            ItemTypeId = content.TypeId.ToString(),
+                            Reward = reward,
+                            MarketName = markets[0].DisplayName,
+                            MarketId = markets[0].MarketId
+                        };
+
+                        MyAPIGateway.Utilities.ShowMissionScreen("New Contract", null, newMission.GetName(), newMission.GetFullDescription(),
+                            result => {
+                                if (result == ResultEnum.OK)
+                                {
+                                    MessageMission.SendAddMission(newMission);
+                                }
+                            }, "Create");
+                        return true;
+                    }
+
+                    match = Regex.Match(messageText, MissionDestroyOpenPattern, RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        var entityName = match.Groups["name"].Value.Trim();
+                        var reward = Convert.ToDecimal(match.Groups["reward"].Value, CultureInfo.InvariantCulture);
+                        IMyEntity entity;
+                        Vector3D entityLastPosition = Vector3D.Zero;
+                        if (!string.IsNullOrEmpty(entityName))
+                        {
+                            var entities = new HashSet<IMyEntity>();
+                            MyAPIGateway.Entities.GetEntities(entities, e => e is IMyCubeGrid);
+                            entity = entities.FirstOrDefault(e => e.DisplayName.Equals(entityName, StringComparison.OrdinalIgnoreCase));
+                        }
+                        else
+                        {
+                            entity = Support.FindLookAtEntity(MyAPIGateway.Session.ControlledObject, true, false, false, false, false, false, true);
+                        }
+
+                        BoundingSphereD boundingSphereD = new BoundingSphereD(MyAPIGateway.Session.Player.GetPosition(), 500);
+                        if (boundingSphereD.Contains((entity as IMyEntity).GetPosition()) == ContainmentType.Contains)
+                        {
+                            entityLastPosition = entity.GetPosition();
+                        }
+
+                        if (entity != null)
+                        {
+                            var cubeGrid = (IMyCubeGrid)entity;
+                            MissionBaseStruct newMission = new BlockDestroyMission
+                            {
+                                EntityId = entity.EntityId,
+                                EntityName = entity.DisplayName,
+                                EntityLastPosition = entityLastPosition,
+                                Reward = reward
+                            };
+
+                            MyAPIGateway.Utilities.ShowMissionScreen("New Contract", null, newMission.GetName(), newMission.GetFullDescription(),
+                            result => {
+                                if (result == ResultEnum.OK)
+                                {
+                                    MessageMission.SendAddMission(newMission);
+                                }
+                            }, "Create");
+                        }
+                        else
+                        {
+                            MyAPIGateway.Utilities.ShowMessage("Server", "No entities exist with this name");
+                        }
+
+                        return true;
+                    }
+
+                    int missionId;
+                    if (split[1] == "sample")
+                    {
+                        // nothing to do here
+                    }
+                    else if (split[1].Equals("hide", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        HudManager.FetchMission(-1);
+                    }
+                    else if (split[1].Equals("list", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        StringBuilder missioninfo = new StringBuilder();
+                        foreach (var mission in ClientConfig.Missions)
+                        {
+                            var player = MyAPIGateway.Players.FindPlayerBySteamId(mission.CreatedBy);
+                            missioninfo.Append($"{mission.MissionId}. {mission.GetName()}");
+                            missioninfo.AppendLine($"{mission.GetShortDescription()}");
+                            missioninfo.Append($"Payment: {mission.Reward} Credits");
+                            //missioninfo.AppendLine($"  -  From: {player?.DisplayName ?? "Unknown"}");
+                            missioninfo.AppendLine();
+                        }
+
+                        MyAPIGateway.Utilities.ShowMissionScreen("Available Contracts", "", "", missioninfo.ToString(), null, "Close");
+                    }
+                    else if (split[1].Equals("abandon", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == ClientConfig.MissionId);
+                        if (mission != null && mission.AcceptedBy == MyAPIGateway.Session.Player.SteamUserId)
+                        {
+                            MyAPIGateway.Utilities.ShowMissionScreen("Active Contract", mission.MissionId + ". ", mission.GetName(), mission.GetFullDescription(), 
+                                result => {
+                                    if (result == ResultEnum.OK)
+                                    {
+                                        MessageMission.SendAbandonMission(mission.MissionId);
+                                    }
+                                }, "Abandon");
+                        }
+                        else
+                        {
+                            MyAPIGateway.Utilities.ShowMessage("Server", "You don't have an active contract");
+                        }
+                    }
+                    else if (split[1] == "close" && split.Length == 3 && int.TryParse(split[2], out missionId))
+                    {
+                        var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == missionId);
+                        if (mission != null)
+                        {
+                            if (mission.CreatedBy == MyAPIGateway.Session.Player.SteamUserId && mission.AcceptedBy == 0)
+                            {
+                                MessageMission.SendDeleteMission(mission.MissionId);
+                            }
+                            else
+                            {
+                                MyAPIGateway.Utilities.ShowMessage("Server", "The contract can not be closed");
+                            }
+                        }
+                        else
+                        {
+                            MyAPIGateway.Utilities.ShowMessage("Server", "No contract with this number");
+                        }
+                    }
+                    else if (int.TryParse(split[1], out missionId))
+                    {
+                        var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == missionId);
+                        if (mission != null)
+                        {
+                            MyAPIGateway.Utilities.ShowMissionScreen("Contract", mission.MissionId + ". ", mission.GetName(), mission.GetFullDescription(), 
+                                result => {
+                                    if (result == ResultEnum.OK)
+                                    {
+                                        MessageMission.SendAbandonMission(ClientConfig.MissionId);
+                                        MessageMission.SendAcceptMission(mission.MissionId);
+                                    }
+                                }, "Accept Offer");
+                        }
+                        else
+                        {
+                            MyAPIGateway.Utilities.ShowMessage("Server", "No contract with this number");
+                        }
+                    }
+
+                    return true;
+                }
+
+                if (split[0].Equals("/contract", StringComparison.InvariantCultureIgnoreCase) && split.Length == 1)
+                {
+                    var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == ClientConfig.MissionId);
+                    if (mission != null)
+                    {
+                        MyAPIGateway.Utilities.ShowMissionScreen("Active Contract", mission.MissionId + " : ", mission.GetName(), mission.GetFullDescription(), null, "OK");
+                        MyAPIGateway.Utilities.ShowMessage("Server", "Active contract: {0}", ClientConfig.MissionId);
+                        //MyAPIGateway.Utilities.GetObjectiveLine().Show();
+                    }
+                    else
+                    {
+                        MyAPIGateway.Utilities.ShowMessage("Server", "No active contract");
+                    }
 
                     if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }
+                
                     return true;
-                }
-
-                if (split[0].Equals("/mission", StringComparison.InvariantCultureIgnoreCase) && split.Length == 1
-                         && MyAPIGateway.Session.Player.IsAdmin()) //added to disable until ready to release
-                {
-                    MessageMission.SendCreateSampleMissions(true);
-
-                    //we are not an admin how about we start off a demo / tutorial mission chain then
-                    //this is only temp; ideally we should have some sort of mission menu system or something more fancy eg a mission LCD menu you navigate with chat commands
-                    //at some point we probably need a "new missions available" message somewhere too. 
-                    //looks like we need a persistent "completed missions" counter for each client to prevent repeating the same mission chains
-                    //for now tho we can just make sure they only run it once per session; and keep rewards tiny.
-                    //Chain: Suggest the /bal mission followed by the investigate 0,0,0 mission. Then mayby buy or sell or worth later.
-                    //really need a way to let us specify the investigate coords instead of hard coding then i can make random coords for random investigate missions
-                    //and of course being able to specify them in custom mission files admins create for their servers.
-
-                    //the existing logic here could be converted to a /tutorial command for new players once the real mission system is up
-
-                    //footnote: we should probably check the current hud settings and save them for later..  so that the settings are returned to what they were?
-                    //or should we not bother to activate the ShowXYZ command to begin with..  just the contract read out?
-                    //for that then we need to know how many missions are in the current chain for the mission counter total?
-                    //or should we ditch the total and make it work like a game "score"  ? we still need something to show how many missions need to be done..
-                    //so if we add a score it should be a new read out again maybe..
-
-                    /*
-                if (ClientConfig.CompletedMissions == 0) { 
-                    //ok we are doing a mission, lets boot up the hud and activate mission relevent read outs
-                    ClientConfig.ShowHud = true;                
-                    ClientConfig.ShowContractCount = true;
-                    MyAPIGateway.Utilities.GetObjectiveLine().Show();
-                    ClientConfig.CompletedMissions=1;
-                    MyAPIGateway.Utilities.ShowMessage("Mission", "Received.");
-                    MyAPIGateway.Utilities.ShowMissionScreen("Mission", "1 ", "Issue Requested Command", "Welcome To The Mission Network System Agent!\r\nFirstly we need to test our connection is valid..\r\nDon't Worry the easiest way to do this is\r\nsimply run a basic system command.\r\nThe /bal command should do - this requests your bank balance.\r\nAfter closing this window, Please Type /bal to proceed..", null, "Yes Sir!");
-                 //ShowMissionScreen(string screenTitle = null, string currentObjectivePrefix = null, string currentObjective = null, string screenDescription = null, Action<ResultEnum> callback = null, string okButtonCaption = null);
-                }  //hopefully the =1 above will also trigger the if ==1 below .. saving on redundancy
-                if (ClientConfig.CompletedMissions == 1) { HudManager.FetchMission(1); MyAPIGateway.Utilities.ShowMessage("Objective:", "Issue command /bal to proceed."); }
-                if (ClientConfig.CompletedMissions == 2) { 
-                    HudManager.FetchMission(9); 
-                    ClientConfig.ShowXYZ = true;
-                    if (!ClientConfig.SeenBriefing)
-                    {
-                        ClientConfig.SeenBriefing = true; //prevents popups or active mission conditions resetting accidentally
-                        HudManager.GPS(0, 0, 0, "Mission Objective^", "Mission Objective^", true); //x,y,z,name,description,create (true) remove (false)
-                        MyAPIGateway.Utilities.ShowMissionScreen("Mission", "2 ", "Investigate Location", "We need you to investigate location 0,0,0!\r\nHead on over and take a look around..\r\nA GPS point has been created for you.", null, "Yes Sir!");
-                    }
-                    MyAPIGateway.Utilities.ShowMessage("Objective:", "Investigate GPS location. 0,0,0");
-                }
-
-                if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }
-                */
-                    return true;
-
                 }
             }
 
@@ -1429,15 +1571,15 @@ namespace Economy.scripts
 
                 // TODO: pull current mission text when ClientConfig is ready.
                 //if (MyAPIGateway.Utilities.GetObjectiveLine().CurrentObjective == "Type /bal to connect to network")
-                if (ClientConfig.CompletedMissions == 1)
-                {
-                    ClientConfig.CompletedMissions++;
-                    MessageRewardAccount.SendMessage(10);
-                    MyAPIGateway.Utilities.ShowMissionScreen("Mission", "1 ", "Completed", "Great work agent, looks like the network link is solid.\r\n10 Reward Paid..\r\nWhen you are ready /mission again to check for missions..", null, "Yes Sir!");
-                    MyAPIGateway.Utilities.ShowMessage("Objective: ", "Completed! 10 reward paid. Type /mission to check for more missions");
-                    HudManager.FetchMission(0);
-                    if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }
-                }
+                //if (ClientConfig.CompletedMissions == 1)
+                //{
+                //    ClientConfig.CompletedMissions++;
+                //    MessageRewardAccount.SendMessage(10);
+                //    MyAPIGateway.Utilities.ShowMissionScreen("Mission", "1 ", "Completed", "Great work agent, looks like the network link is solid.\r\n10 Reward Paid..\r\nWhen you are ready /mission again to check for missions..", null, "Yes Sir!");
+                //    MyAPIGateway.Utilities.ShowMessage("Objective: ", "Completed! 10 reward paid. Type /mission to check for more missions");
+                //    HudManager.FetchMission(0);
+                //    if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }
+                //}
 
                 return true;
             }
