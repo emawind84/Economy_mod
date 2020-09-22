@@ -66,7 +66,7 @@
         public override bool CheckMission()
         {
             IMyPlayer player;
-            if (MyAPIGateway.Players.TryGetPlayer(PlayerId, out player))
+            if (MyAPIGateway.Players.TryGetPlayer(AcceptedBy, out player))
             {
                 Vector3D position = player.GetPosition();
                 return ((AreaSphere != null && ((BoundingSphereD)AreaSphere).Contains(position) == ContainmentType.Contains) ||

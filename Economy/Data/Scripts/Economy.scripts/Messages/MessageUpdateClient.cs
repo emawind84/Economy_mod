@@ -45,7 +45,7 @@
 
         public static void SendAccountMessage(ClientAccountStruct account)
         {
-            ConnectionHelper.SendMessageToPlayer(account.SteamId, new MessageUpdateClient { ClientUpdateAction = ClientUpdateAction.Account, BankBalance = account.BankBalance, MissionId = account.MissionId });
+            ConnectionHelper.SendMessageToPlayer(account.SteamId, new MessageUpdateClient { ClientUpdateAction = ClientUpdateAction.Account, BankBalance = account.BankBalance });
         }
 
         public static void SendServerConfig(EconConfigStruct serverConfig)
@@ -60,7 +60,12 @@
 
         public static void SendServerMissions(ulong steamdId)
         {
-            ConnectionHelper.SendMessageToPlayer(steamdId, new MessageUpdateClient { ClientUpdateAction = ClientUpdateAction.Missions, Missions = EconomyScript.Instance.Data.Missions.Where(m => m.PlayerId == steamdId).ToList() });
+            ConnectionHelper.SendMessageToPlayer(steamdId, new MessageUpdateClient { ClientUpdateAction = ClientUpdateAction.Missions, Missions = EconomyScript.Instance.Data.Missions.ToList() });
+        }
+
+        public static void SendServerMissions()
+        {
+            ConnectionHelper.SendMessageToAllPlayers(new MessageUpdateClient { ClientUpdateAction = ClientUpdateAction.Missions, Missions = EconomyScript.Instance.Data.Missions.ToList() });
         }
 
         #endregion
@@ -132,7 +137,6 @@
             {
                 case ClientUpdateAction.Account:
                     EconomyScript.Instance.ClientConfig.BankBalance = BankBalance;
-                    EconomyScript.Instance.ClientConfig.MissionId = MissionId;
                     break;
 
                 case ClientUpdateAction.ServerConfig:

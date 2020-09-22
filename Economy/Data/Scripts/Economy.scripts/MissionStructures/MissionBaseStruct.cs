@@ -1,8 +1,10 @@
 namespace Economy.scripts.MissionStructures
 {
     using System;
+    using System.Text;
     using System.Xml.Serialization;
     using ProtoBuf;
+    using Sandbox.ModAPI;
 
     // for xml serialization to save/load disk by server.
     [XmlType("Mission")]
@@ -45,6 +47,15 @@ namespace Economy.scripts.MissionStructures
     [ProtoInclude(17, typeof(WeldMission))]
     public abstract class MissionBaseStruct
     {
+
+        protected MissionBaseStruct()
+        {
+            if (MyAPIGateway.Multiplayer.IsServer)
+                CreatedBy = MyAPIGateway.Multiplayer.ServerId;
+            if (MyAPIGateway.Session.Player != null)
+                CreatedBy = MyAPIGateway.Session.Player.SteamUserId;
+        }
+
         /// <summary>
         /// Unique identifier of the mission.
         /// </summary>
@@ -58,47 +69,53 @@ namespace Economy.scripts.MissionStructures
         public MissionAssignmentType AssignmentType { get; set; }
 
         /// <summary>
-        /// The player the mission is assigned to.
+        /// The player that created the mission.
         /// </summary>
         [ProtoMember(103)]
-        public ulong PlayerId { get; set; }
+        public ulong CreatedBy { get; set; }
+
+        /// <summary>
+        /// The player the mission is assigned to.
+        /// </summary>
+        [ProtoMember(104)]
+        public ulong AcceptedBy { get; set; }
 
         /// <summary>
         /// An identifier is used when the same mission is assigned to many people.
         /// When one individual wins, some rule may be applied to the other missions.
         /// </summary>
         // Wish we could use System.Guid, except it is not allowed in ModAPI.
-        [ProtoMember(104)]
+        [ProtoMember(105)]
         public Int64 GroupMissionId { get; set; }
 
         /// <summary>
         /// Indicates who can complete the mission and recieve the reward out of the assigned players.
         /// </summary>
-        [ProtoMember(105)]
+        [ProtoMember(106)]
         public MissionWinRule WinRule { get; set; }
 
         /// <summary>
         /// How much credit is recieved when the mission is completed sucessfully.
         /// </summary>
-        [ProtoMember(106)]
+        [ProtoMember(107)]
         public decimal Reward { get; set; }
 
         /// <summary>
         /// When the Mission was created and listed.
         /// </summary>
-        [ProtoMember(107)]
+        [ProtoMember(108)]
         public DateTime OfferDate { get; set; }
 
         /// <summary>
         /// The Date/Time that a Mission will expire (if it expires).
         /// </summary>
-        [ProtoMember(108)]
+        [ProtoMember(109)]
         public DateTime? Expiration { get; set; }
 
         /// <summary>
         /// If the assigned player has been presented with the Briefing yet.
         /// </summary>
-        [ProtoMember(109)]
+        [ProtoMember(110)]
         public bool SeenBriefing { get; set; }
 
         /// <summary>
@@ -115,6 +132,15 @@ namespace Economy.scripts.MissionStructures
         /// </summary>
         /// <returns></returns>
         public virtual string GetDescription()
+        {
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Brief description used in the contract list
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetShortDescription()
         {
             return string.Empty;
         }
@@ -146,6 +172,41 @@ namespace Economy.scripts.MissionStructures
 
         public virtual void RemoveGps()
         {
+        }
+
+        public virtual string GetFullDescription()
+        {
+            ulong SenderSteamId = 0;
+            if (MyAPIGateway.Multiplayer.IsServer)
+                SenderSteamId = MyAPIGateway.Multiplayer.ServerId;
+            if (MyAPIGateway.Session.Player != null)
+                SenderSteamId = MyAPIGateway.Session.Player.SteamUserId;
+
+            StringBuilder description = new StringBuilder();
+            if (EconomyScript.Instance.ClientConfig != null)
+                description.AppendLine($"- Payment: {Reward} {EconomyScript.Instance.ClientConfig.ServerConfig.CurrencyName}");
+            else
+                description.AppendLine($"- Payment: {Reward} {EconomyScript.Instance.ServerConfig.CurrencyName}");
+
+            var createdBy = MyAPIGateway.Players.FindPlayerBySteamId(CreatedBy);
+            //description.AppendLine($"- From: {createdBy?.DisplayName ?? "Unknown"}");
+            if (AcceptedBy != 0 && CreatedBy == SenderSteamId)
+            {
+                var acceptedBy = MyAPIGateway.Players.FindPlayerBySteamId(AcceptedBy);
+                description.AppendLine($"- Accepted by: {acceptedBy?.DisplayName ?? "Unknown"}");
+            }
+
+            if (Expiration != null)
+            {
+                var timeleft = (Expiration - DateTime.Now);
+                //description.AppendLine($"- Valid until: {Expiration?.ToString("dddd, dd MMMM yyyy HH:mm:ss") ?? "NA"}");
+                description.AppendLine($"- Time left: {timeleft.Value.Hours}H {timeleft.Value.Minutes}MIN");
+            }
+            description.AppendLine();
+            description.AppendLine();
+            description.AppendLine(GetDescription());
+
+            return description.ToString();
         }
     }
 }

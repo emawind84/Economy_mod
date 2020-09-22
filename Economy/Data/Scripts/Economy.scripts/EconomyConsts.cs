@@ -381,7 +381,10 @@
         AddMission = 2,
         SyncMission = 3,
         DeleteMission = 4,
-        MissionComplete = 5
+        MissionComplete = 5,
+        MissionFailed = 6,
+        AcceptMission = 7,
+        AbandonMission = 8
     }
 
     public enum MissionAssignmentType : byte

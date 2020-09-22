@@ -75,9 +75,10 @@
                 ServerConfig = EconomyScript.Instance.ServerConfig,
                 BankBalance = account.BankBalance,
                 OpenedDate = account.OpenedDate,
+                MissionId = account.MissionId,
                 NewAccount = newAccount,
                 ClientHudSettings = account.ClientHudSettings,
-                Missions = EconomyScript.Instance.Data.Missions.Where(m => m.PlayerId == SenderSteamId).ToList(),
+                Missions = EconomyScript.Instance.Data.Missions.ToList(),
                 Markets = EconomyScript.Instance.Data.Markets.Where(m => m.Open
                     && ((EconomyScript.Instance.ServerConfig.EnableNpcTradezones && m.MarketId == EconomyConsts.NpcMerchantId)
                     || (EconomyScript.Instance.ServerConfig.EnablePlayerTradezones && m.MarketId != EconomyConsts.NpcMerchantId))).ToList()

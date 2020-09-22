@@ -1,14 +1,125 @@
 ﻿namespace Economy.scripts.MissionStructures
 {
+    using Economy.scripts.EconConfig;
+    using Economy.scripts.Messages;
     using ProtoBuf;
+    using Sandbox.ModAPI;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using VRage.Game;
+    using VRage.Game.ModAPI;
+    using VRage.ModAPI;
+    using VRageMath;
 
     //only applies if we implement emergency restock contract missions
     [ProtoContract]
     public class DeliverItemToTradeZoneMission : MissionBaseStruct
     {
+        [ProtoMember(201)]
+        public decimal ItemQuantity { get; set; }
+
+        [ProtoMember(202)]
+        public string ItemTypeId { get; set; }
+
+        [ProtoMember(203)]
+        public string ItemSubTypeName { get; set; }
+
+        [ProtoMember(204)]
+        public string MarketName { get; set; }
+
+        [ProtoMember(205)]
+        public ulong MarketId { get; set; }
+
+        [ProtoMember(206)]
+        public bool Delivered { get; set; }
+        
+        public DeliverItemToTradeZoneMission() : base()
+        {
+            MissionManager.OnSellCommandExecuted += OnSellCommandExecuted;
+        }
+
+        private void OnSellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity)
+        {
+            IMyPlayer player;
+            if (MyAPIGateway.Players.TryGetPlayer(AcceptedBy, out player))
+            {
+                var markets = MarketManager.FindMarketsFromLocation(player.GetPosition());
+                var market = markets.FirstOrDefault(m => m.DisplayName.Equals(MarketName, StringComparison.OrdinalIgnoreCase));
+                if (market != null 
+                    && marketId == MarketId
+                    && senderSteamId == AcceptedBy && itemTypeId == ItemTypeId 
+                    && itemSubtypeName == ItemSubTypeName && itemQuantity >= ItemQuantity)
+                {
+                    Delivered = true;
+                    MissionManager.OnSellCommandExecuted -= OnSellCommandExecuted;
+                    MessageUpdateClient.SendServerMissions();
+                }
+                MyAPIGateway.Utilities.ShowMessage("debug", "Sell command received");
+            }
+        }
+
         public override string GetName()
         {
-            return "Deliver X item to Trade zone Y";
+            return "We need you to run a shipment for us.";
         }
+
+        public override string GetDescription()
+        {
+            string suffix = "";
+            if (ItemTypeId == "MyObjectBuilder_Ore") suffix = " Ore";
+            else if (ItemTypeId == "MyObjectBuilder_Ingot") suffix = " Ingot";
+            var item = ItemSubTypeName + suffix;
+            return $"We need {ItemQuantity} kg of {item} delivered over at {MarketName}.\r\nA GPS point will be created for you.";
+        }
+
+        public override string GetShortDescription()
+        {
+            string suffix = "";
+            if (ItemTypeId == "MyObjectBuilder_Ore") suffix = " Ore";
+            else if (ItemTypeId == "MyObjectBuilder_Ingot") suffix = " Ingot";
+            var item = ItemSubTypeName + suffix;
+            return $"We need {ItemQuantity} kg of {item} delivered to {MarketName}.";
+        }
+
+        public override string GetSuccessMessage()
+        {
+            return "Thank you for your business.";
+        }
+
+        public override void AddGps()
+        {
+            var market = EconomyScript.Instance.ClientConfig.Markets.Find(m => m.DisplayName == MarketName);
+            if (market != null)
+            {
+                var position = MarketManager.FindPositionFromMarket(market);
+                //EconConfig.HudManager.GPS(position.X, position.Y, position.Z, "Contract Objective " + MissionId, GetName(), true);
+                Sandbox.Game.MyVisualScriptLogicProvider.AddGPSObjective("Delivering Location", GetDescription(), new Vector3D(position.X, position.Y, position.Z), Color.Green);
+            }
+        }
+
+        public override void RemoveGps()
+        {
+            var market = EconomyScript.Instance.ClientConfig.Markets.Find(m => m.DisplayName == MarketName);
+            if (market != null)
+            {
+                var position = MarketManager.FindPositionFromMarket(market);
+                Sandbox.Game.MyVisualScriptLogicProvider.RemoveGPS("Delivering Location");
+                //HudManager.GPS(position.X, position.Y, position.Z, "Contract Objective " + MissionId, GetName(), false);
+            }
+        }
+
+        public override bool CheckMission()
+        {
+            var markets = MarketManager.ClientFindMarketsFromName(EconomyScript.Instance.ClientConfig.Markets, MarketName);
+            if (markets.Count() != 1)
+            {
+                // we close the mission since the market cannot be found anymore
+                // player might have closed it or removed it, we reward the contractor anyway.
+                return true;
+            }
+            return Delivered;
+        }
+
     }
 }
