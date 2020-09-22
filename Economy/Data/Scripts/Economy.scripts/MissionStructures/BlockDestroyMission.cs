@@ -1,5 +1,6 @@
 ﻿namespace Economy.scripts.MissionStructures
 {
+    using Economy.scripts.EconConfig;
     using Economy.scripts.Messages;
     using ProtoBuf;
     using Sandbox.Game.Entities;
@@ -100,6 +101,22 @@
                 }
             }
             return false;
+        }
+
+        public override void CompleteMission()
+        {
+            var player = MyAPIGateway.Players.FindPlayerBySteamId(AcceptedBy);
+            if (player != null)
+            {
+                var playerAccount = AccountManager.FindOrCreateAccount(player.SteamUserId, player.DisplayName, 0);
+
+                EconomyScript.Instance.Data.CreditBalance -= Reward;
+                playerAccount.BankBalance += Reward;
+                playerAccount.Date = DateTime.Now;
+
+                MessageUpdateClient.SendAccountMessage(playerAccount);
+                MessageClientSound.SendMessage(AcceptedBy, "SoundBlockObjectiveComplete");
+            }
         }
     }
 }
