@@ -629,7 +629,7 @@ namespace Economy.scripts
                             MarketId = markets[0].MarketId
                         };
 
-                        MyAPIGateway.Utilities.ShowMissionScreen("New Contract", null, newMission.GetName(), newMission.GetFullDescription(),
+                        MyAPIGateway.Utilities.ShowMissionScreen("New Contract", "", newMission.GetName(), newMission.GetFullDescription(),
                             result => {
                                 if (result == ResultEnum.OK)
                                 {
@@ -674,7 +674,7 @@ namespace Economy.scripts
                                 Reward = reward
                             };
 
-                            MyAPIGateway.Utilities.ShowMissionScreen("New Contract", null, newMission.GetName(), newMission.GetFullDescription(),
+                            MyAPIGateway.Utilities.ShowMissionScreen("New Contract", "", newMission.GetName(), newMission.GetFullDescription(),
                             result => {
                                 if (result == ResultEnum.OK)
                                 {
