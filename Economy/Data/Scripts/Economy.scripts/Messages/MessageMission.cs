@@ -239,7 +239,6 @@
                     break;
 
                 case PlayerMissionManage.AcceptMission:
-                    using (ExecutionLock.AcquireExclusiveUsing())
                     {
                         var mission = GetMission(MissionId);
                         if (mission != null && (mission.AcceptedBy == SenderSteamId || mission.AcceptedBy == 0))
