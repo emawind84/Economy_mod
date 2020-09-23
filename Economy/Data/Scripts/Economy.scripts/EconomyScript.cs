@@ -694,10 +694,12 @@ namespace Economy.scripts
                     if (split[1] == "sample")
                     {
                         // nothing to do here
+                        return true;
                     }
                     else if (split[1].Equals("hide", StringComparison.InvariantCultureIgnoreCase))
                     {
                         HudManager.FetchMission(-1);
+                        return true;
                     }
                     else if (split[1].Equals("list", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -713,6 +715,7 @@ namespace Economy.scripts
                         }
 
                         MyAPIGateway.Utilities.ShowMissionScreen("Available Contracts", "", "", missioninfo.ToString(), null, "Close");
+                        return true;
                     }
                     else if (split[1].Equals("abandon", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -731,6 +734,7 @@ namespace Economy.scripts
                         {
                             MyAPIGateway.Utilities.ShowMessage("CONTRACT", "You don't have an active contract");
                         }
+                        return true;
                     }
                     else if (split[1] == "close" && split.Length == 3 && int.TryParse(split[2], out missionId))
                     {
@@ -750,6 +754,7 @@ namespace Economy.scripts
                         {
                             MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No contract with this number");
                         }
+                        return true;
                     }
                     else if (int.TryParse(split[1], out missionId))
                     {
@@ -769,15 +774,16 @@ namespace Economy.scripts
                         {
                             MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No contract with this number");
                         }
+                        return true;
                     }
 
-                    //MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Wrong command");
-                    //MyAPIGateway.Utilities.ShowMessage("CONTRACT", "See '/ehelp contract' for more details.");
+                    MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Wrong command");
+                    MyAPIGateway.Utilities.ShowMessage("CONTRACT", "See '/ehelp contract' for more details.");
 
                     return true;
                 }
 
-                if (split[0].Equals("/contract", StringComparison.InvariantCultureIgnoreCase) && split.Length == 1)
+                else if (split[0].Equals("/contract", StringComparison.InvariantCultureIgnoreCase) && split.Length == 1)
                 {
                     var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == ClientConfig.MissionId);
                     if (mission != null)
