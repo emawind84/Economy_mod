@@ -201,6 +201,7 @@
                         MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been opened and {1} {2} has been detracted from your account", Mission.MissionId, Mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                         MessageUpdateClient.SendAccountMessage(senderAccount);
                         MessageUpdateClient.SendServerMissions();
+                        EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {Mission.MissionId} created by {SenderSteamId}");
                     }
                     break;
 
@@ -234,6 +235,7 @@
                             RemoveMission(mission);
                             MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been closed, {1} {2} has been refunded into your account", mission.MissionId, mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                             MessageUpdateClient.SendServerMissions();
+                            EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {MissionId} closed by {SenderSteamId}");
                         }
                     }
                     break;
@@ -244,7 +246,7 @@
                         if (mission != null && (mission.AcceptedBy == SenderSteamId || mission.AcceptedBy == 0))
                         {
                             mission.AcceptedBy = SenderSteamId;
-                            mission.Expiration = DateTime.Now + TimeSpan.FromSeconds(10800);
+                            mission.Expiration = DateTime.Now + TimeSpan.FromSeconds(10);
 
                             MessageUpdateClient.SendServerMissions();
                             ConnectionHelper.SendMessageToPlayer(SenderSteamId, new MessageMission { CommandType = PlayerMissionManage.AcceptMission, MissionId = MissionId });
@@ -253,6 +255,7 @@
                             senderAccount.MissionId = MissionId;
                             senderAccount.Date = DateTime.Now;
                             MessageUpdateClient.SendAccountMessage(senderAccount);
+                            EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {MissionId} accepted by {SenderSteamId}");
                         }
                         else
                         {
@@ -271,6 +274,7 @@
                             mission.CompleteMission();
                             RemoveMission(mission);
                             MessageUpdateClient.SendServerMissions();
+                            EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {MissionId} completed by {SenderSteamId}");
                         }
                     }
                     break;
@@ -289,6 +293,7 @@
                             senderAccount.MissionId = 0;
                             senderAccount.Date = DateTime.Now;
                             MessageUpdateClient.SendAccountMessage(senderAccount);
+                            EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {MissionId} abandoned by {SenderSteamId}");
                         }
                     }
                     break;

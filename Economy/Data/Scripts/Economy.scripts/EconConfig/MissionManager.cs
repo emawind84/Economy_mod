@@ -10,7 +10,7 @@ namespace Economy.scripts.EconConfig
     public static class MissionManager
     {
         /// <summary>
-        /// Check accepted missions and make sure they fail if expired
+        /// [SERVER SIDE] Check accepted missions and make sure they fail if expired
         /// </summary>
         public static void CheckMissionTimeouts()
         {
@@ -20,6 +20,16 @@ namespace Economy.scripts.EconConfig
                 {
                     if (DateTime.Now > mission.Expiration)
                     {
+                        EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {mission.MissionId} failed by {mission.AcceptedBy}");
+
+                        var senderAccount = AccountManager.FindAccount(mission.AcceptedBy);
+                        if (senderAccount != null)
+                        {
+                            senderAccount.MissionId = 0;
+                            senderAccount.Date = DateTime.Now;
+                            MessageUpdateClient.SendAccountMessage(senderAccount);
+                        }
+
                         MessageMission.SendMissionFailed(mission);
                         mission.ResetMission();
                         MessageUpdateClient.SendServerMissions();
