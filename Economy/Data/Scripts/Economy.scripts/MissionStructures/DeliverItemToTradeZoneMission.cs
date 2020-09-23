@@ -5,12 +5,8 @@
     using ProtoBuf;
     using Sandbox.ModAPI;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using VRage;
-    using VRage.Game;
     using VRage.Game.ModAPI;
-    using VRage.ModAPI;
     using VRageMath;
 
     //only applies if we implement emergency restock contract missions
@@ -37,11 +33,12 @@
         
         public DeliverItemToTradeZoneMission() : base()
         {
-            MissionManager.OnSellCommandExecuted += OnSellCommandExecuted;
+            MessageSell.OnSellCommandExecuted += CheckDeliverAndUpdateStatus;
         }
 
-        private bool OnSellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity)
+        private bool CheckDeliverAndUpdateStatus(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity, out string message)
         {
+            message = null;  // sending a direct text message here might result in multiple request so we use an output variable
             IMyPlayer player;
             if (MyAPIGateway.Players.TryGetPlayer(AcceptedBy, out player))
             {
@@ -57,8 +54,12 @@
                     if (itemQuantity == ItemQuantity)
                     {
                         Delivered = true;
-                        MissionManager.OnSellCommandExecuted -= OnSellCommandExecuted;
+                        MessageSell.OnSellCommandExecuted -= CheckDeliverAndUpdateStatus;
                         MessageUpdateClient.SendServerMissions();
+                    }
+                    else
+                    {
+                        message = $"{ItemQuantity} kg are requested by the contract, this is not negotiable";
                     }
                     return true;
                 }

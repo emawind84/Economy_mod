@@ -5,10 +5,7 @@
     using ProtoBuf;
     using Sandbox.Game.Entities;
     using Sandbox.ModAPI;
-    using Sandbox.ModAPI.Ingame;
     using System;
-    using System.Collections.Generic;
-    using System.Text;
     using VRage;
     using VRage.Game.ModAPI;
     using VRage.ModAPI;

@@ -113,6 +113,10 @@
 
         #endregion
 
+        public delegate bool SellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity, out string message);
+
+        public static SellCommandExecuted OnSellCommandExecuted;
+
         public override void ProcessClient()
         {
             // never processed on client
@@ -314,10 +318,13 @@
                             return;
                         }
 
-                        // if items are to deliver to the market we end the operation
-                        bool? delivered = MissionManager.OnSellCommandExecuted?.Invoke(SenderSteamId, accountToBuy.SteamId, ItemTypeId, ItemSubTypeName, ItemQuantity);
+                        string missionMessage = null;
+                        bool? delivered = OnSellCommandExecuted?.Invoke(SenderSteamId, accountToBuy.SteamId, ItemTypeId, ItemSubTypeName, ItemQuantity, out missionMessage);
                         if (delivered.Value)
                         {
+                            // if items are to deliver to the market with delivery mission we end the operation
+                            if (missionMessage != null)
+                                MessageClientTextMessage.SendMessage(SenderSteamId, "SELL", missionMessage);
                             return;
                         }
 

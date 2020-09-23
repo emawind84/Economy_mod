@@ -9,10 +9,6 @@ namespace Economy.scripts.EconConfig
 {
     public static class MissionManager
     {
-        public delegate bool SellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity);
-
-        public static SellCommandExecuted OnSellCommandExecuted;
-
         /// <summary>
         /// Check accepted missions and make sure they fail if expired
         /// </summary>
