@@ -140,7 +140,7 @@
                         Sandbox.Game.MyVisualScriptLogicProvider.ReplaceQuestlogDetail(0, "Contract failed.");
                         Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogDetailCompleted(0, true);
 
-                        MyAPIGateway.Utilities.ShowMessage("Server", $"Contract {currentMission.MissionId} failed");
+                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", $"Contract No. {currentMission.MissionId} failed");
                         HudManager.FetchMission(0);
                     }
                     break;
@@ -161,7 +161,7 @@
             {
                 case PlayerMissionManage.Test:
                     //EconomyScript.Instance.ServerLogger.WriteVerbose("Mission Text request '{0}' from '{1}'", MissionID, SenderSteamId);
-                    MessageClientTextMessage.SendMessage(SenderSteamId, "mission", (MissionId + " server side"));
+                    MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", (MissionId + " server side"));
                     break;
 
                 case PlayerMissionManage.AddSample:
@@ -239,6 +239,7 @@
                     break;
 
                 case PlayerMissionManage.AcceptMission:
+                    using (ExecutionLock.AcquireExclusiveUsing())
                     {
                         var mission = GetMission(MissionId);
                         if (mission != null && (mission.AcceptedBy == SenderSteamId || mission.AcceptedBy == 0))
@@ -256,7 +257,7 @@
                         }
                         else
                         {
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "The contract has been accepted by another pilot");
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "The contract has been accepted already by another pilot");
                         }
                     }
                     break;
@@ -280,8 +281,7 @@
                         var mission = GetMission(MissionId);
                         if (mission != null && mission.AcceptedBy == SenderSteamId)
                         {
-                            mission.AcceptedBy = 0;
-                            mission.Expiration = null;
+                            mission.ResetMission();
 
                             MessageUpdateClient.SendServerMissions();
                             ConnectionHelper.SendMessageToPlayer(SenderSteamId, new MessageMission { CommandType = PlayerMissionManage.AbandonMission, MissionId = MissionId });
