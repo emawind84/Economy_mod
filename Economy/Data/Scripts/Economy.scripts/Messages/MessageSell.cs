@@ -314,6 +314,13 @@
                             return;
                         }
 
+                        // if items are to deliver to the market we end the operation
+                        bool? delivered = MissionManager.OnSellCommandExecuted?.Invoke(SenderSteamId, accountToBuy.SteamId, ItemTypeId, ItemSubTypeName, ItemQuantity);
+                        if (delivered.Value)
+                        {
+                            return;
+                        }
+
                         MarketItemStruct marketItem = null;
                         // Placeholder are we trading Space Credits
                         bool SpaceCredit = false;
@@ -422,7 +429,7 @@
                                     MessageUpdateClient.SendAccountMessage(accountToBuy);
                                     MessageUpdateClient.SendAccountMessage(accountToSell);
 
-                                    MissionManager.OnSellCommandExecuted?.Invoke(SenderSteamId, accountToBuy.SteamId, ItemTypeId, ItemSubTypeName, ItemQuantity);
+                                    //MissionManager.OnSellCommandExecuted?.Invoke(SenderSteamId, accountToBuy.SteamId, ItemTypeId, ItemSubTypeName, ItemQuantity);
                                 }
                                 else
                                 {

@@ -606,7 +606,7 @@ namespace Economy.scripts
                         var markets = MarketManager.ClientFindMarketsFromName(EconomyScript.Instance.ClientConfig.Markets, marketName);
                         if (markets.Count() != 1)
                         {
-                            MyAPIGateway.Utilities.ShowMessage("Server", "There is no market registered under this name");
+                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "There is no market registered under this name");
                             return true;
                         }
 
@@ -614,7 +614,7 @@ namespace Economy.scripts
                         Dictionary<string, MyDefinitionBase> options;
                         if (!Support.FindPhysicalParts(itemName, out content, out options))
                         {
-                            MyAPIGateway.Utilities.ShowMessage("Server", "The product specified doesn't seem valid");
+                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "The item specified doesn't seem valid");
                             return true;
                         }
 
@@ -684,7 +684,7 @@ namespace Economy.scripts
                         }
                         else
                         {
-                            MyAPIGateway.Utilities.ShowMessage("Server", "No entities exist with this name");
+                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No entities exist with this name");
                         }
 
                         return true;
@@ -729,7 +729,7 @@ namespace Economy.scripts
                         }
                         else
                         {
-                            MyAPIGateway.Utilities.ShowMessage("Server", "You don't have an active contract");
+                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "You don't have an active contract");
                         }
                     }
                     else if (split[1] == "close" && split.Length == 3 && int.TryParse(split[2], out missionId))
@@ -743,12 +743,12 @@ namespace Economy.scripts
                             }
                             else
                             {
-                                MyAPIGateway.Utilities.ShowMessage("Server", "The contract can not be closed");
+                                MyAPIGateway.Utilities.ShowMessage("CONTRACT", "The contract can not be closed");
                             }
                         }
                         else
                         {
-                            MyAPIGateway.Utilities.ShowMessage("Server", "No contract with this number");
+                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No contract with this number");
                         }
                     }
                     else if (int.TryParse(split[1], out missionId))
@@ -767,7 +767,7 @@ namespace Economy.scripts
                         }
                         else
                         {
-                            MyAPIGateway.Utilities.ShowMessage("Server", "No contract with this number");
+                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No contract with this number");
                         }
                     }
 
@@ -780,12 +780,12 @@ namespace Economy.scripts
                     if (mission != null)
                     {
                         MyAPIGateway.Utilities.ShowMissionScreen("Active Contract", mission.MissionId + " : ", mission.GetName(), mission.GetFullDescription(), null, "OK");
-                        MyAPIGateway.Utilities.ShowMessage("Server", "Active contract: {0}", ClientConfig.MissionId);
+                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Active contract: {0}", ClientConfig.MissionId);
                         //MyAPIGateway.Utilities.GetObjectiveLine().Show();
                     }
                     else
                     {
-                        MyAPIGateway.Utilities.ShowMessage("Server", "No active contract");
+                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No active contract");
                     }
 
                     if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }

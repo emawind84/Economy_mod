@@ -9,7 +9,7 @@ namespace Economy.scripts.EconConfig
 {
     public static class MissionManager
     {
-        public delegate void SellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity);
+        public delegate bool SellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity);
 
         public static SellCommandExecuted OnSellCommandExecuted;
 
@@ -25,8 +25,7 @@ namespace Economy.scripts.EconConfig
                     if (DateTime.Now > mission.Expiration)
                     {
                         MessageMission.SendMissionFailed(mission);
-                        mission.AcceptedBy = 0;
-                        mission.Expiration = null;
+                        mission.ResetMission();
                         MessageUpdateClient.SendServerMissions();
                     }
                 }

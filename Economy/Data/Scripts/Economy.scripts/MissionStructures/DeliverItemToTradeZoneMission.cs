@@ -7,6 +7,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using VRage;
     using VRage.Game;
     using VRage.Game.ModAPI;
     using VRage.ModAPI;
@@ -39,24 +40,30 @@
             MissionManager.OnSellCommandExecuted += OnSellCommandExecuted;
         }
 
-        private void OnSellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity)
+        private bool OnSellCommandExecuted(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity)
         {
             IMyPlayer player;
             if (MyAPIGateway.Players.TryGetPlayer(AcceptedBy, out player))
             {
+                //MessageClientTextMessage.SendMessage(AcceptedBy, "CONTRACT", "Sell command received");
+
                 var markets = MarketManager.FindMarketsFromLocation(player.GetPosition());
                 var market = markets.FirstOrDefault(m => m.DisplayName.Equals(MarketName, StringComparison.OrdinalIgnoreCase));
                 if (market != null 
                     && marketId == MarketId
                     && senderSteamId == AcceptedBy && itemTypeId == ItemTypeId 
-                    && itemSubtypeName == ItemSubTypeName && itemQuantity >= ItemQuantity)
+                    && itemSubtypeName == ItemSubTypeName)
                 {
-                    Delivered = true;
-                    MissionManager.OnSellCommandExecuted -= OnSellCommandExecuted;
-                    MessageUpdateClient.SendServerMissions();
+                    if (itemQuantity == ItemQuantity)
+                    {
+                        Delivered = true;
+                        MissionManager.OnSellCommandExecuted -= OnSellCommandExecuted;
+                        MessageUpdateClient.SendServerMissions();
+                    }
+                    return true;
                 }
-                MyAPIGateway.Utilities.ShowMessage("debug", "Sell command received");
             }
+            return false;
         }
 
         public override string GetName()
@@ -119,6 +126,34 @@
                 return true;
             }
             return Delivered;
+        }
+
+        public override void CompleteMission()
+        {
+            var player = MyAPIGateway.Players.FindPlayerBySteamId(AcceptedBy);
+            if (player != null)
+            {
+                var playerAccount = AccountManager.FindOrCreateAccount(player.SteamUserId, player.DisplayName, 0);
+
+                EconomyScript.Instance.Data.CreditBalance -= Reward;
+                playerAccount.BankBalance += Reward;
+                playerAccount.Date = DateTime.Now;
+
+                MessageUpdateClient.SendAccountMessage(playerAccount);
+                MessageClientSound.SendMessage(AcceptedBy, "SoundBlockObjectiveComplete");
+                MessageClientTextMessage.SendMessage(AcceptedBy, "CONTRACT", "The payment has been added to your balance");
+            }
+
+            var market = MarketManager.FindMarketsFromName(MarketName).FirstOrDefault();
+            if (market != null)
+            {
+                var marketItem = market.MarketItems.FirstOrDefault(e => e.TypeId == ItemTypeId && e.SubtypeName == ItemSubTypeName);
+                if (marketItem != null)
+                {
+                    marketItem.Quantity += ItemQuantity;
+                    MessageClientTextMessage.SendMessage(CreatedBy, "CONTRACT", $"The item you requested has been delivered");
+                }
+            }
         }
 
     }
