@@ -244,7 +244,7 @@
                         if (mission != null && (mission.AcceptedBy == SenderSteamId || mission.AcceptedBy == 0))
                         {
                             mission.AcceptedBy = SenderSteamId;
-                            mission.Expiration = DateTime.Now + TimeSpan.FromSeconds(3600);
+                            mission.Expiration = DateTime.Now + TimeSpan.FromSeconds(10800);
 
                             MessageUpdateClient.SendServerMissions();
                             ConnectionHelper.SendMessageToPlayer(SenderSteamId, new MessageMission { CommandType = PlayerMissionManage.AcceptMission, MissionId = MissionId });
