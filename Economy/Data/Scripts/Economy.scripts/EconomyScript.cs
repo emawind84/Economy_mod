@@ -788,7 +788,7 @@ namespace Economy.scripts
                     var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == ClientConfig.MissionId);
                     if (mission != null)
                     {
-                        MyAPIGateway.Utilities.ShowMissionScreen("Active Contract", mission.MissionId + " : ", mission.GetName(), mission.GetFullDescription(), null, "OK");
+                        MyAPIGateway.Utilities.ShowMissionScreen("Active Contract", mission.MissionId + ". ", mission.GetName(), mission.GetFullDescription(), null, "OK");
                         MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Active contract: {0}", ClientConfig.MissionId);
                         //MyAPIGateway.Utilities.GetObjectiveLine().Show();
                     }
