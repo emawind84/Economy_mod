@@ -50,6 +50,7 @@ namespace Economy.scripts.MissionStructures
 
         protected MissionBaseStruct()
         {
+            OfferDate = DateTime.Now;
             if (MyAPIGateway.Multiplayer.IsServer)
                 CreatedBy = MyAPIGateway.Multiplayer.ServerId;
             if (MyAPIGateway.Session.Player != null)
