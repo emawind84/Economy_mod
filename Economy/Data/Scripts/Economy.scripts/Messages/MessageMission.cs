@@ -120,7 +120,7 @@
                 case PlayerMissionManage.AcceptMission:
                     {
                         HudManager.FetchMission(MissionId);
-                        MyAPIGateway.Utilities.ShowMessage("Server", "Setting contract {0}", MissionId);
+                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Contract No. {0} has been accepted", MissionId);
                         if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }
                     }
                     break;
@@ -177,7 +177,7 @@
                             OfferDate = DateTime.Now,
                         }, 0);
 
-                        MessageClientTextMessage.SendMessage(SenderSteamId, "Server", "Contract number {0} has been opened, {1} {2} has been detracted from your account", newMission.MissionId, newMission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract No. {0} has been opened and {1} {2} has been detracted from your account", newMission.MissionId, newMission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                         MessageUpdateClient.SendServerMissions();
                     }
                     break;
@@ -189,15 +189,16 @@
                         var senderAccount = AccountManager.FindOrCreateAccount(SenderSteamId, SenderDisplayName, SenderLanguage);
                         if (senderAccount.BankBalance < Mission.Reward)
                         {
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "Server", "You don't have enough credits to open this contract");
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "You don't have enough credits to open this contract");
                             break;
                         }
 
                         CreateMission(Mission, 0);
+                        EconomyScript.Instance.Data.CreditBalance += Mission.Reward;
                         senderAccount.BankBalance -= Mission.Reward;
                         senderAccount.Date = DateTime.Now;
 
-                        MessageClientTextMessage.SendMessage(SenderSteamId, "Server", "Contract number {0} has been opened and {1} {2} has been detracted from your account", Mission.MissionId, Mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been opened and {1} {2} has been detracted from your account", Mission.MissionId, Mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                         MessageUpdateClient.SendAccountMessage(senderAccount);
                         MessageUpdateClient.SendServerMissions();
                     }
@@ -223,6 +224,7 @@
                             var player = MyAPIGateway.Players.FindPlayerBySteamId(mission.CreatedBy);
                             if (player != null)
                             {
+                                EconomyScript.Instance.Data.CreditBalance -= mission.Reward;
                                 var playerAccount = AccountManager.FindOrCreateAccount(player.SteamUserId, player.DisplayName, SenderLanguage);
                                 playerAccount.BankBalance += mission.Reward;
                                 playerAccount.Date = DateTime.Now;
@@ -230,7 +232,7 @@
                                 MessageUpdateClient.SendAccountMessage(playerAccount);
                             }
                             RemoveMission(mission);
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "Server", "Contract number {0} has been closed, {1} {2} has been refunded into your account", mission.MissionId, mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been closed, {1} {2} has been refunded into your account", mission.MissionId, mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                             MessageUpdateClient.SendServerMissions();
                         }
                     }
@@ -254,7 +256,7 @@
                         }
                         else
                         {
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "Server", "The contract has been accepted by another pilot");
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "The contract has been accepted by another pilot");
                         }
                     }
                     break;

@@ -45,18 +45,23 @@
             IMyPlayer player;
             if (MyAPIGateway.Players.TryGetPlayer(AcceptedBy, out player))
             {
+                //MessageClientTextMessage.SendMessage(AcceptedBy, "CONTRACT", "Sell command received");
+
                 var markets = MarketManager.FindMarketsFromLocation(player.GetPosition());
                 var market = markets.FirstOrDefault(m => m.DisplayName.Equals(MarketName, StringComparison.OrdinalIgnoreCase));
                 if (market != null 
                     && marketId == MarketId
                     && senderSteamId == AcceptedBy && itemTypeId == ItemTypeId 
-                    && itemSubtypeName == ItemSubTypeName && itemQuantity >= ItemQuantity)
+                    && itemSubtypeName == ItemSubTypeName)
                 {
-                    Delivered = true;
-                    MissionManager.OnSellCommandExecuted -= OnSellCommandExecuted;
-                    MessageUpdateClient.SendServerMissions();
+                    if (itemQuantity == ItemQuantity)
+                    {
+                        Delivered = true;
+                        MissionManager.OnSellCommandExecuted -= OnSellCommandExecuted;
+                        MessageUpdateClient.SendServerMissions();
+                    }
+                    return true;
                 }
-                MyAPIGateway.Utilities.ShowMessage("debug", "Sell command received");
             }
             return false;
         }
@@ -136,6 +141,7 @@
 
                 MessageUpdateClient.SendAccountMessage(playerAccount);
                 MessageClientSound.SendMessage(AcceptedBy, "SoundBlockObjectiveComplete");
+                MessageClientTextMessage.SendMessage(AcceptedBy, "CONTRACT", "The payment has been added to your balance");
             }
 
             var market = MarketManager.FindMarketsFromName(MarketName).FirstOrDefault();
@@ -145,6 +151,7 @@
                 if (marketItem != null)
                 {
                     marketItem.Quantity += ItemQuantity;
+                    MessageClientTextMessage.SendMessage(CreatedBy, "CONTRACT", $"The item you requested has been delivered");
                 }
             }
         }

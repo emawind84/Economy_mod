@@ -116,7 +116,15 @@
 
                 MessageUpdateClient.SendAccountMessage(playerAccount);
                 MessageClientSound.SendMessage(AcceptedBy, "SoundBlockObjectiveComplete");
+                MessageClientTextMessage.SendMessage(AcceptedBy, "CONTRACT", "The payment has been added to your balance");
             }
+        }
+
+        public override void ResetMission()
+        {
+            base.ResetMission();
+
+            EntityIntegrity = -1;
         }
     }
 }
