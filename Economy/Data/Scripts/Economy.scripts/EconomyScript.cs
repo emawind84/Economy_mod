@@ -712,6 +712,7 @@ namespace Economy.scripts
                             missioninfo.Append($"Payment: {mission.Reward} Credits");
                             //missioninfo.AppendLine($"  -  From: {player?.DisplayName ?? "Unknown"}");
                             missioninfo.AppendLine();
+                            missioninfo.AppendLine();
                         }
 
                         MyAPIGateway.Utilities.ShowMissionScreen("Available Contracts", "", "", missioninfo.ToString(), null, "Close");
@@ -736,7 +737,8 @@ namespace Economy.scripts
                         }
                         return true;
                     }
-                    else if (split[1] == "close" && split.Length == 3 && int.TryParse(split[2], out missionId))
+                    else if (split[1].Equals("close", StringComparison.InvariantCultureIgnoreCase) 
+                        && split.Length == 3 && int.TryParse(split[2], out missionId))
                     {
                         var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == missionId);
                         if (mission != null)

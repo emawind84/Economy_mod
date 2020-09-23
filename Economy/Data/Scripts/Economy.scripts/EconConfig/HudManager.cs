@@ -252,7 +252,9 @@
                 Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogVisible(false);
             }
 
-            MissionBaseStruct currentMission = EconomyScript.Instance.ClientConfig.Missions.FirstOrDefault(m => m.MissionId == missionId);
+            MissionBaseStruct currentMission = EconomyScript.Instance.ClientConfig.Missions.FirstOrDefault(
+                m => m.MissionId == missionId &&
+                m.AcceptedBy == MyAPIGateway.Session.Player.SteamUserId);
             if (currentMission == null)
                 missionId = -1;
             EconomyScript.Instance.ClientConfig.MissionId = missionId;
@@ -354,7 +356,9 @@
             //int MissionPayment = 0;
 
 
-            MissionBaseStruct currentMission = EconomyScript.Instance.ClientConfig.Missions.FirstOrDefault(m => m.MissionId == clientConfig.MissionId);
+            MissionBaseStruct currentMission = EconomyScript.Instance.ClientConfig.Missions.FirstOrDefault(
+                m => m.MissionId == clientConfig.MissionId && 
+                m.AcceptedBy == MyAPIGateway.Session.Player.SteamUserId);
 
             // no mission currently selected. or no valid mission selected.
             if (currentMission == null)
