@@ -771,6 +771,9 @@ namespace Economy.scripts
                         }
                     }
 
+                    //MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Wrong command");
+                    //MyAPIGateway.Utilities.ShowMessage("CONTRACT", "See '/ehelp contract' for more details.");
+
                     return true;
                 }
 
@@ -2273,6 +2276,7 @@ namespace Economy.scripts
                             MyAPIGateway.Utilities.ShowMessage("eHelp", "Example: /pricelist [optional item type] ore/ingot/component/ammmo/tools etc");
                             MyAPIGateway.Utilities.ShowMissionScreen("Economy Help", "", "pricelist command", helpreply, null, "Close");
                             return true;
+
                         case "gps":
                             helpreply = "/gps add|del X\r\n Quick add or remove a GPS point of optional name [X]\r\n" +
                                 "Eg /gps add\r\n" +
@@ -2284,6 +2288,21 @@ namespace Economy.scripts
                                 " \r\n";
                             MyAPIGateway.Utilities.ShowMessage("eHelp", "Example: /pricelist [optional item type] ore/ingot/component/ammmo/tools etc");
                             MyAPIGateway.Utilities.ShowMissionScreen("Economy Help", "", "pricelist command", helpreply, null, "Close");
+                            return true;
+
+                        case "contract":
+                            helpreply = "" +
+                                "/contract  -  Display the active contract\r\n" +
+                                "/contract list - Display the list of available contracts\r\n" +
+                                "/contract #  -  Display full description of a contract, given the contract's number\r\n" +
+                                "/contract open delivery qty ice market 1000 - Create a delivery mission, where qty is the quantity of item to deliver, market is the market name, 1000 is the reward in Frontier Credits\r\n" +
+                                "/contract open destroy jupiter 10000 - Create a find & destroy mission, where jupiter is the name of the ship followed by the reward\r\n" +
+                                "/contract open destroy 100000 - Create a find & destroy mission, where the ship you are looking at will be assigned to the contract\r\n" +
+                                "/contract close #  -  Close a contract that you opened\r\n" +
+                                "/contract abandon #  -  Abandon a contract that you accepted (fee maybe in the future)\r\n" +
+                                "/contract hide - Hide the contract info hud";
+                            MyAPIGateway.Utilities.ShowMessage("eHelp", "/contract #|list|open|close|abandon|hide");
+                            MyAPIGateway.Utilities.ShowMissionScreen("Economy Help", "", "contract command", helpreply, null, "Close");
                             return true;
 
                     }
