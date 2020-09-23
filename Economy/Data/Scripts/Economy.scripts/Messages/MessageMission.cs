@@ -266,21 +266,7 @@
                         var mission = GetMission(MissionId);
                         if (mission != null && mission.AcceptedBy == SenderSteamId)
                         {
-                            var player = MyAPIGateway.Players.FindPlayerBySteamId(SenderSteamId);
-                            if (player != null)
-                            {
-                                // we look up our bank record based on our Steam Id/
-                                // create balance if not one already, then add our reward and update client.
-                                var playerAccount = AccountManager.FindOrCreateAccount(SenderSteamId, SenderDisplayName, SenderLanguage);
-
-                                EconomyScript.Instance.Data.CreditBalance -= mission.Reward;
-                                playerAccount.BankBalance += mission.Reward;
-                                playerAccount.Date = DateTime.Now;
-
-                                MessageUpdateClient.SendAccountMessage(playerAccount);
-                                MessageClientSound.SendMessage(SenderSteamId, "SoundBlockObjectiveComplete");
-                            }
-
+                            mission.CompleteMission();
                             RemoveMission(mission);
                             MessageUpdateClient.SendServerMissions();
                         }

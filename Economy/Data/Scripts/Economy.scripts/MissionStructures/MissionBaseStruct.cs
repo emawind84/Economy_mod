@@ -164,6 +164,17 @@ namespace Economy.scripts.MissionStructures
         }
 
         /// <summary>
+        /// Complete the mission
+        /// </summary>
+        public virtual void CompleteMission() {}
+
+        public virtual void ResetMission()
+        {
+            AcceptedBy = 0;
+            Expiration = null;
+        }
+
+        /// <summary>
         /// Checks and adds GPS coorindate to player if required by the Mission.
         /// </summary>
         public virtual void AddGps()
