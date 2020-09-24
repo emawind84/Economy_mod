@@ -36,7 +36,7 @@
         public override string GetDescription()
         {
             return $"We are looking for a discreet pilot to resolve a case dear to us." +
-                $"\r\nWe need to get rid of a ship, its name is {EntityName}." +
+                $"\r\nWe need to get rid of a target, its name is {EntityName}." +
                 $"\r\nWe count on your discretion to keep these information for yourself.";
         }
 

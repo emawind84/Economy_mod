@@ -620,7 +620,6 @@ namespace Economy.scripts
 
                         MissionBaseStruct newMission = new DeliverItemToTradeZoneMission
                         {
-                            OfferDate = DateTime.Now,
                             ItemQuantity = itemQuantity,
                             ItemSubTypeName = content.SubtypeName,
                             ItemTypeId = content.TypeId.ToString(),
