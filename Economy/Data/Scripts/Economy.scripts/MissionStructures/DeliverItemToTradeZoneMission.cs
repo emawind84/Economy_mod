@@ -102,7 +102,7 @@
             {
                 var position = MarketManager.FindPositionFromMarket(market);
                 //EconConfig.HudManager.GPS(position.X, position.Y, position.Z, "Contract Objective " + MissionId, GetName(), true);
-                Sandbox.Game.MyVisualScriptLogicProvider.AddGPSObjective("Delivering Location", GetDescription(), new Vector3D(position.X, position.Y, position.Z), Color.Green);
+                Sandbox.Game.MyVisualScriptLogicProvider.AddGPSObjective("Delivering Location", GetDescription(), new Vector3D(position.X, position.Y, position.Z), Color.Green, 0, MyAPIGateway.Session.Player.IdentityId);
             }
         }
 
@@ -112,7 +112,7 @@
             if (market != null)
             {
                 var position = MarketManager.FindPositionFromMarket(market);
-                Sandbox.Game.MyVisualScriptLogicProvider.RemoveGPS("Delivering Location");
+                Sandbox.Game.MyVisualScriptLogicProvider.RemoveGPS("Delivering Location", MyAPIGateway.Session.Player.IdentityId);
                 //HudManager.GPS(position.X, position.Y, position.Z, "Contract Objective " + MissionId, GetName(), false);
             }
         }

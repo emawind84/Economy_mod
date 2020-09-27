@@ -249,7 +249,7 @@
         {
             if (missionId < 0) // debug clear.
             {
-                Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogVisible(false);
+                Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogVisible(false, MyAPIGateway.Session.Player.IdentityId);
             }
 
             MissionBaseStruct currentMission = EconomyScript.Instance.ClientConfig.Missions.FirstOrDefault(
@@ -267,8 +267,8 @@
             else
             {
                 currentMission.AddGps();
-                Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlog(true, currentMission.MissionId + ". " + currentMission.GetName());
-                Sandbox.Game.MyVisualScriptLogicProvider.AddQuestlogDetail(currentMission.GetDescription());
+                Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlog(true, currentMission.MissionId + ". " + currentMission.GetName(), MyAPIGateway.Session.Player.IdentityId);
+                Sandbox.Game.MyVisualScriptLogicProvider.AddQuestlogDetail(currentMission.GetDescription(), true, true, MyAPIGateway.Session.Player.IdentityId);
             }
         }
 

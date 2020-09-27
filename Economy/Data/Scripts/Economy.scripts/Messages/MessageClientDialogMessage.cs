@@ -25,9 +25,15 @@
             // never processed on server.
         }
 
-        public static void SendMessage(ulong steamId, string title, string prefix, string content)
+        public static void SendMessage(ulong steamId, string title, string prefix, string content, params object[] args)
         {
-            ConnectionHelper.SendMessageToPlayer(steamId, new MessageClientDialogMessage { Title = title, Prefix = prefix, Content = content });
+            string message;
+            if (args == null || args.Length == 0)
+                message = content;
+            else
+                message = string.Format(content, args);
+
+            ConnectionHelper.SendMessageToPlayer(steamId, new MessageClientDialogMessage { Title = title, Prefix = prefix, Content = message });
         }
     }
 }

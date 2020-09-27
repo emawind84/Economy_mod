@@ -155,6 +155,12 @@ namespace Economy.scripts.MissionStructures
             return string.Empty;
         }
 
+        public virtual bool PrepareMission(out string message)
+        {
+            message = "";
+            return true;
+        }
+
         /// <summary>
         /// Checks if the mission has met it's criteria and someone has won.
         /// </summary>

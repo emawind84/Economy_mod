@@ -6,6 +6,8 @@
     using Sandbox.Game.Entities;
     using Sandbox.ModAPI;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using VRage;
     using VRage.Game.ModAPI;
     using VRage.ModAPI;
@@ -54,15 +56,49 @@
         {
             if (EntityLastPosition != Vector3D.Zero)
                 Sandbox.Game.MyVisualScriptLogicProvider.AddGPSObjective($"{EntityName} - Last Position", 
-                    GetDescription(), new Vector3D(EntityLastPosition.X, EntityLastPosition.Y, EntityLastPosition.Z), Color.Red);
+                    GetDescription(), new Vector3D(EntityLastPosition.X, EntityLastPosition.Y, EntityLastPosition.Z), Color.Red, 0, MyAPIGateway.Session.Player.IdentityId);
         }
 
         public override void RemoveGps()
         {
             if (EntityLastPosition != Vector3D.Zero)
-                Sandbox.Game.MyVisualScriptLogicProvider.RemoveGPS($"{EntityName} - Last Position");
+                Sandbox.Game.MyVisualScriptLogicProvider.RemoveGPS($"{EntityName} - Last Position", MyAPIGateway.Session.Player.IdentityId);
         }
 
+        public override bool PrepareMission(out string message)
+        {
+            IMyEntity entity;
+            Vector3D entityLastPosition = Vector3D.Zero;
+
+            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out entity))
+            {
+                var entities = new HashSet<IMyEntity>();
+                MyAPIGateway.Entities.GetEntities(entities, e => e is IMyCubeGrid);
+                entity = entities.FirstOrDefault(e => e.DisplayName.Equals(EntityName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            IMyPlayer creator = MyAPIGateway.Players.GetPlayer(CreatedBy);
+            if (entity != null && creator?.Character != null)
+            {
+                BoundingSphereD boundingSphereD = new BoundingSphereD(creator.GetPosition(), 500);
+                if (boundingSphereD.Contains(entity.GetPosition()) == ContainmentType.Contains)
+                {
+                    entityLastPosition = entity.GetPosition();
+                }
+            }
+            else
+            {
+                message = "No valid target found";
+                return false;
+            }
+            message = "";
+            return true;
+        }
+
+        /// <summary>
+        /// This method is executed on client side to check if the mission is completed
+        /// </summary>
+        /// <returns></returns>
         public override bool CheckMission()
         {
             IMyPlayer player;
@@ -87,19 +123,23 @@
                         }
 
                         //MyAPIGateway.Utilities.ShowMessage("Server", $"Integrity: {EntityIntegrity}/{totalIntegrity}");
-                        Sandbox.Game.MyVisualScriptLogicProvider.ClearNotifications();
-                        Sandbox.Game.MyVisualScriptLogicProvider.ShowNotification($"{EntityName}: {EntityIntegrity}/{totalIntegrity}", 5000);
-                        return totalIntegrity * 100 / EntityIntegrity < 40;
+                        Sandbox.Game.MyVisualScriptLogicProvider.ClearNotifications(MyAPIGateway.Session.Player.IdentityId);
+                        Sandbox.Game.MyVisualScriptLogicProvider.ShowNotification($"{EntityName}: {EntityIntegrity}/{totalIntegrity}", 5000, "White", MyAPIGateway.Session.Player.IdentityId);
+                        return totalIntegrity * 100 / EntityIntegrity < 20;
                     }
                 }
                 else
                 {
-                    return true;
+                    // we can not return true, the entity might exists in the world but not being loaded on clien side
+                    //return true;
                 }
             }
             return false;
         }
 
+        /// <summary>
+        /// This method is executed on server side to reward the player
+        /// </summary>
         public override void CompleteMission()
         {
             var player = MyAPIGateway.Players.FindPlayerBySteamId(AcceptedBy);
