@@ -23,16 +23,13 @@ namespace Economy.scripts
     using Economy.scripts.Management;
     using Economy.scripts.Messages;
     using Economy.scripts.MissionStructures;
-    using Sandbox.Common;
     using Sandbox.Common.ObjectBuilders;
     using Sandbox.Definitions;
     using Sandbox.Game.Entities;
-    using Sandbox.Game.EntityComponents;
     using Sandbox.ModAPI;
     using VRage;
     using VRage.Game;
     using VRage.Game.Components;
-    using VRage.Game.Entity;
     using VRage.Game.ModAPI;
     using VRage.Game.ObjectBuilders.Definitions;
     using VRage.ModAPI;
@@ -628,13 +625,7 @@ namespace Economy.scripts
                             MarketId = markets[0].MarketId
                         };
 
-                        MyAPIGateway.Utilities.ShowMissionScreen("New Contract", "", newMission.GetName(), newMission.GetFullDescription(),
-                            result => {
-                                if (result == ResultEnum.OK)
-                                {
-                                    MessageMission.SendAddMission(newMission);
-                                }
-                            }, "Create");
+                        MessageMission.SendPrepareMission(newMission);
                         return true;
                     }
 
@@ -656,43 +647,25 @@ namespace Economy.scripts
                             entity = Support.FindLookAtEntity(MyAPIGateway.Session.ControlledObject, true, false, false, false, false, false, true);
                         }
 
-                        BoundingSphereD boundingSphereD = new BoundingSphereD(MyAPIGateway.Session.Player.GetPosition(), 500);
-                        if (boundingSphereD.Contains((entity as IMyEntity).GetPosition()) == ContainmentType.Contains)
+                        MissionBaseStruct newMission = new BlockDestroyMission
                         {
-                            entityLastPosition = entity.GetPosition();
-                        }
+                            EntityId = entity?.EntityId ?? 0,
+                            EntityName = entity?.DisplayName ?? entityName,
+                            EntityLastPosition = entityLastPosition,
+                            Reward = reward
+                        };
 
-                        if (entity != null)
-                        {
-                            var cubeGrid = (IMyCubeGrid)entity;
-                            MissionBaseStruct newMission = new BlockDestroyMission
-                            {
-                                EntityId = entity.EntityId,
-                                EntityName = entity.DisplayName,
-                                EntityLastPosition = entityLastPosition,
-                                Reward = reward
-                            };
-
-                            MyAPIGateway.Utilities.ShowMissionScreen("New Contract", "", newMission.GetName(), newMission.GetFullDescription(),
-                            result => {
-                                if (result == ResultEnum.OK)
-                                {
-                                    MessageMission.SendAddMission(newMission);
-                                }
-                            }, "Create");
-                        }
-                        else
-                        {
-                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No entities exist with this name");
-                        }
-
+                        MessageMission.SendPrepareMission(newMission);
                         return true;
                     }
 
                     int missionId;
-                    if (split[1] == "sample")
+                    if (split[1] == "test" && MyAPIGateway.Session.Player.IsAdmin())
                     {
-                        // nothing to do here
+                        var entities = new HashSet<IMyEntity>();
+                        MyAPIGateway.Entities.GetEntities(entities);
+                        MyAPIGateway.Utilities.ShowMessage("Client", $"entities in world: {entities.Count()}");
+                        MessageMission.SendMessage(0);
                         return true;
                     }
                     else if (split[1].Equals("hide", StringComparison.InvariantCultureIgnoreCase))
@@ -707,13 +680,13 @@ namespace Economy.scripts
                         {
                             var player = MyAPIGateway.Players.FindPlayerBySteamId(mission.CreatedBy);
                             missioninfo.Append($"{mission.MissionId}. {mission.GetName()}");
-                            missioninfo.AppendLine($"{mission.GetShortDescription()}");
-                            missioninfo.Append($"Payment: {mission.Reward} Credits");
+                            missioninfo.AppendLine($" {mission.GetShortDescription()}");
+                            missioninfo.Append(string.Format("Payment: {0:#,##0.00} Credits", mission.Reward));
                             //missioninfo.AppendLine($"  -  From: {player?.DisplayName ?? "Unknown"}");
                             missioninfo.AppendLine();
                             missioninfo.AppendLine();
                         }
-
+                        //MyScreenManager.AddScreen(new MyGuiScreenMission("Available Contracts", "", "", missioninfo.ToString(), null, "Close", null, null, false, true, false, MyMissionScreenStyleEnum.BLUE));
                         MyAPIGateway.Utilities.ShowMissionScreen("Available Contracts", "", "", missioninfo.ToString(), null, "Close");
                         return true;
                     }
@@ -742,7 +715,7 @@ namespace Economy.scripts
                         var mission = ClientConfig.Missions.FirstOrDefault(m => m.MissionId == missionId);
                         if (mission != null)
                         {
-                            if (mission.CreatedBy == MyAPIGateway.Session.Player.SteamUserId && mission.AcceptedBy == 0)
+                            if ((mission.CreatedBy == MyAPIGateway.Session.Player.SteamUserId || MyAPIGateway.Session.Player.IsAdmin()) && mission.AcceptedBy == 0)
                             {
                                 MessageMission.SendDeleteMission(mission.MissionId);
                             }

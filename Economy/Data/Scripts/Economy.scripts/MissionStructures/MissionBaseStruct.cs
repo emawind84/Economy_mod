@@ -155,6 +155,12 @@ namespace Economy.scripts.MissionStructures
             return string.Empty;
         }
 
+        public virtual bool PrepareMission(out string message)
+        {
+            message = "";
+            return true;
+        }
+
         /// <summary>
         /// Checks if the mission has met it's criteria and someone has won.
         /// </summary>
@@ -196,9 +202,9 @@ namespace Economy.scripts.MissionStructures
 
             StringBuilder description = new StringBuilder();
             if (EconomyScript.Instance.ClientConfig != null)
-                description.AppendLine($"- Payment: {Reward} {EconomyScript.Instance.ClientConfig.ServerConfig.CurrencyName}");
+                description.AppendLine(string.Format("- Payment: {0:#,##0.00} {1}", Reward, EconomyScript.Instance.ClientConfig.ServerConfig.CurrencyName));
             else
-                description.AppendLine($"- Payment: {Reward} {EconomyScript.Instance.ServerConfig.CurrencyName}");
+                description.AppendLine(string.Format("- Payment: {0:#,##0.00} {1}", Reward, EconomyScript.Instance.ServerConfig.CurrencyName));
 
             var createdBy = MyAPIGateway.Players.FindPlayerBySteamId(CreatedBy);
             //description.AppendLine($"- From: {createdBy?.DisplayName ?? "Unknown"}");

@@ -384,7 +384,8 @@
         MissionComplete = 5,
         MissionFailed = 6,
         AcceptMission = 7,
-        AbandonMission = 8
+        AbandonMission = 8,
+        PrepareMission = 9
     }
 
     public enum MissionAssignmentType : byte
