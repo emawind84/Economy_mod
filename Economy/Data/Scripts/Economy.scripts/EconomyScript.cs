@@ -680,8 +680,8 @@ namespace Economy.scripts
                         {
                             var player = MyAPIGateway.Players.FindPlayerBySteamId(mission.CreatedBy);
                             missioninfo.Append($"{mission.MissionId}. {mission.GetName()}");
-                            missioninfo.AppendLine($"{mission.GetShortDescription()}");
-                            missioninfo.Append($"Payment: {mission.Reward} Credits");
+                            missioninfo.AppendLine($" {mission.GetShortDescription()}");
+                            missioninfo.Append(string.Format("Payment: {0:#,##0.00} Credits", mission.Reward));
                             //missioninfo.AppendLine($"  -  From: {player?.DisplayName ?? "Unknown"}");
                             missioninfo.AppendLine();
                             missioninfo.AppendLine();

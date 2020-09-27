@@ -65,7 +65,7 @@
 
             string msg = mission.GetSuccessMessage();
             if (mission.Reward != 0)
-                msg += string.Format("\r\n{0} {1} Transferred to your account.", mission.Reward, EconomyScript.Instance.ClientConfig.ServerConfig.CurrencyName);
+                msg += string.Format("\r\n{0:#,##0.00} {1} Transferred to your account.", mission.Reward, EconomyScript.Instance.ClientConfig.ServerConfig.CurrencyName);
             //MyAPIGateway.Utilities.ShowMissionScreen("Mission:" + mission.MissionId, "", "Completed", msg, null, "Okay");
 
             Sandbox.Game.MyVisualScriptLogicProvider.ReplaceQuestlogDetail(0, msg, true, MyAPIGateway.Session.Player.IdentityId);
@@ -196,7 +196,7 @@
                             OfferDate = DateTime.Now,
                         }, 0);
 
-                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract No. {0} has been opened and {1} {2} has been detracted from your account", newMission.MissionId, newMission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract No. {0} has been opened and {1:#,##0.00} {2} has been detracted from your account", newMission.MissionId, newMission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                         MessageUpdateClient.SendServerMissions();
                     }
                     break;
@@ -227,7 +227,7 @@
                         senderAccount.BankBalance -= Mission.Reward;
                         senderAccount.Date = DateTime.Now;
 
-                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been opened and {1} {2} has been detracted from your account", Mission.MissionId, Mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been opened and {1:#,##0.00} {2} has been detracted from your account", Mission.MissionId, Mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                         MessageUpdateClient.SendAccountMessage(senderAccount);
                         MessageUpdateClient.SendServerMissions();
                         EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {Mission.MissionId} created by {SenderSteamId}");
@@ -263,7 +263,7 @@
                                 MessageUpdateClient.SendAccountMessage(playerAccount);
                             }
                             RemoveMission(mission);
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been closed, {1} {2} has been refunded into your account", mission.MissionId, mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been closed, {1:#,##0.00} {2} has been refunded into your account", mission.MissionId, mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                             MessageUpdateClient.SendServerMissions();
                             EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {MissionId} closed by {SenderSteamId}");
                         }
