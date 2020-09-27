@@ -68,8 +68,6 @@
         public override bool PrepareMission(out string message)
         {
             IMyEntity entity;
-            Vector3D entityLastPosition = Vector3D.Zero;
-
             if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out entity))
             {
                 var entities = new HashSet<IMyEntity>();
@@ -80,10 +78,12 @@
             IMyPlayer creator = MyAPIGateway.Players.GetPlayer(CreatedBy);
             if (entity != null && creator?.Character != null)
             {
+                EntityId = entity.EntityId;
+                EntityName = entity.DisplayName;
                 BoundingSphereD boundingSphereD = new BoundingSphereD(creator.GetPosition(), 500);
                 if (boundingSphereD.Contains(entity.GetPosition()) == ContainmentType.Contains)
                 {
-                    entityLastPosition = entity.GetPosition();
+                    EntityLastPosition = entity.GetPosition();
                 }
             }
             else
