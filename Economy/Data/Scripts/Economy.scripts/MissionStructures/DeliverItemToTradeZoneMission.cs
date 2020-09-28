@@ -42,7 +42,7 @@
             IMyPlayer player;
             if (MyAPIGateway.Players.TryGetPlayer(AcceptedBy, out player))
             {
-                //MessageClientTextMessage.SendMessage(AcceptedBy, "CONTRACT", "Sell command received");
+                //MessageClientTextMessage.SendMessage(AcceptedBy, "Contract", "Sell command received");
 
                 var markets = MarketManager.FindMarketsFromLocation(player.GetPosition());
                 var market = markets.FirstOrDefault(m => m.DisplayName.Equals(MarketName, StringComparison.OrdinalIgnoreCase));
@@ -116,10 +116,10 @@
                 //HudManager.GPS(position.X, position.Y, position.Z, "Contract Objective " + MissionId, GetName(), false);
             }
         }
-
+        
         public override bool CheckMission()
         {
-            var markets = MarketManager.ClientFindMarketsFromName(EconomyScript.Instance.ClientConfig.Markets, MarketName);
+            var markets = MarketManager.ClientFindMarketsFromName(EconomyScript.Instance.Data.Markets, MarketName);
             if (markets.Count() != 1)
             {
                 // we close the mission since the market cannot be found anymore
@@ -128,7 +128,7 @@
             }
             return Delivered;
         }
-
+        
         public override void CompleteMission()
         {
             var player = MyAPIGateway.Players.FindPlayerBySteamId(AcceptedBy);
@@ -142,7 +142,7 @@
 
                 MessageUpdateClient.SendAccountMessage(playerAccount);
                 MessageClientSound.SendMessage(AcceptedBy, "SoundBlockObjectiveComplete");
-                MessageClientTextMessage.SendMessage(AcceptedBy, "CONTRACT", "The payment has been added to your balance");
+                MessageClientTextMessage.SendMessage(AcceptedBy, "Contract", "The payment has been added to your balance");
             }
 
             var market = MarketManager.FindMarketsFromName(MarketName).FirstOrDefault();
@@ -152,7 +152,7 @@
                 if (marketItem != null)
                 {
                     marketItem.Quantity += ItemQuantity;
-                    MessageClientTextMessage.SendMessage(CreatedBy, "CONTRACT", $"The item you requested has been delivered");
+                    MessageClientTextMessage.SendMessage(CreatedBy, "Contract", $"The item you requested has been delivered");
                 }
             }
         }

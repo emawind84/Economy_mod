@@ -155,6 +155,11 @@ namespace Economy.scripts.MissionStructures
             return string.Empty;
         }
 
+        /// <summary>
+        /// Validate and initialize the mission, Executed on server.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public virtual bool PrepareMission(out string message)
         {
             message = "";
@@ -162,7 +167,12 @@ namespace Economy.scripts.MissionStructures
         }
 
         /// <summary>
-        /// Checks if the mission has met it's criteria and someone has won.
+        /// Executed on client, should update the hud and give feedback to the player.
+        /// </summary>
+        public virtual void UpdateAfterSimulation() { }
+
+        /// <summary>
+        /// Checks if the mission has met it's criteria and someone has won. Executed on server.
         /// </summary>
         /// <returns></returns>
         public virtual bool CheckMission()
@@ -171,7 +181,7 @@ namespace Economy.scripts.MissionStructures
         }
 
         /// <summary>
-        /// Complete the mission
+        /// Complete the mission, this method is executed on server.
         /// </summary>
         public virtual void CompleteMission() {}
 

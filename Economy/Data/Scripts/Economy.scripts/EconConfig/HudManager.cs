@@ -312,9 +312,7 @@
                 return;
 
             // if the player does not have a controlable body yet, no point continuing.
-            if (MyAPIGateway.Session.Player.Controller == null
-                || MyAPIGateway.Session.Player.Controller.ControlledEntity == null
-                || MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity == null)
+            if (MyAPIGateway.Session.Player.Controller?.ControlledEntity?.Entity == null)
                 return;
 
             if (clientConfig.ClientHudSettings.ShowFaction)
@@ -356,7 +354,7 @@
             //int MissionPayment = 0;
 
 
-            MissionBaseStruct currentMission = EconomyScript.Instance.ClientConfig.Missions.FirstOrDefault(
+            MissionBaseStruct currentMission = clientConfig.Missions.FirstOrDefault(
                 m => m.MissionId == clientConfig.MissionId && 
                 m.AcceptedBy == MyAPIGateway.Session.Player.SteamUserId);
 
@@ -364,29 +362,7 @@
             if (currentMission == null)
                 return;
 
-            bool success = currentMission.CheckMission();
-
-            if (success)
-            {
-                /*
-                clientConfig.SeenBriefing = false; //reset the check that tests if player has seen briefing and/or had gps created already
-                clientConfig.CompletedMissions++; //increment the completed missions counter (note this is not intended to be 'current' mission just a counter)
-                                                  //it will probably only be used for current mission "chain" tracking later on
-                if (clientConfig.CompletedMissions >= 3)
-                { //demo mission chain is over clean up unnecessary hud sections we added earlier
-                    clientConfig.ClientHudSettings.ShowContractCount = false;
-                    clientConfig.ClientHudSettings.ShowPosition = false;
-                }
-                */
-
-                MessageMission.SendMissionComplete(currentMission);
-
-                clientConfig.LazyMissionText = clientConfig.MissionId + " Mission: completed";
-
-                //FetchMission(-1);
-                FetchMission(0);
-                UpdateHud();
-            }
+            currentMission.UpdateAfterSimulation();
         }
 
     }

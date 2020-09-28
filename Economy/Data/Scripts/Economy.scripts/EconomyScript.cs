@@ -144,6 +144,7 @@ namespace Economy.scripts
         private Timer _timer1Events; // 1 second.
         private Timer _timer10Events; // 10 seconds.
         private Timer _timer3600Events; // 1 hour.
+        private bool _timer1Block;
         private bool _timer10Block;
         private bool _timer3600Block;
 
@@ -463,26 +464,26 @@ namespace Economy.scripts
         {
             // commented out while there isn't any use.  TODO: remove later if there isn't any more need.
 
-            //// DO NOT SET ANY IN GAME API CALLS HERE. AT ALL!
-            //MyAPIGateway.Utilities.InvokeOnGameThread(delegate
-            //{
-            //    // Recheck main Gateway properties, as the Game world my be currently shutting down when the InvokeOnGameThread is called.
-            //    if (MyAPIGateway.Players == null || MyAPIGateway.Entities == null || MyAPIGateway.Session == null || MyAPIGateway.Utilities == null)
-            //        return;
+            // DO NOT SET ANY IN GAME API CALLS HERE. AT ALL!
+            MyAPIGateway.Utilities.InvokeOnGameThread(delegate
+            {
+                // Recheck main Gateway properties, as the Game world my be currently shutting down when the InvokeOnGameThread is called.
+                if (MyAPIGateway.Players == null || MyAPIGateway.Entities == null || MyAPIGateway.Session == null || MyAPIGateway.Utilities == null)
+                    return;
 
-            //    if (_timer1Block) // prevent other any additional calls into this code while it may still be running.
-            //        return;
+                if (_timer1Block) // prevent other any additional calls into this code while it may still be running.
+                    return;
 
-            //    _timer1Block = true;
-            //    try
-            //    {
-            //        // Any processing needs to occur in here, as it will be on the main thread, and hopefully thread safe.
-            //    }
-            //    finally
-            //    {
-            //        _timer1Block = false;
-            //    }
-            //});
+                _timer1Block = true;
+                try
+                {
+                    // Any processing needs to occur in here, as it will be on the main thread, and hopefully thread safe.
+                }
+                finally
+                {
+                    _timer1Block = false;
+                }
+            });
         }
 
         private void Timer10EventsOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
@@ -501,7 +502,7 @@ namespace Economy.scripts
                 try
                 {
                     // Any processing needs to occur in here, as it will be on the main thread, and hopefully thread safe.
-                    MissionManager.CheckMissionTimeouts();
+                    MissionManager.CheckMissions();
                     MarketManager.CheckTradeTimeouts();
                 }
                 finally
@@ -603,7 +604,7 @@ namespace Economy.scripts
                         var markets = MarketManager.ClientFindMarketsFromName(EconomyScript.Instance.ClientConfig.Markets, marketName);
                         if (markets.Count() != 1)
                         {
-                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "There is no market registered under this name");
+                            MyAPIGateway.Utilities.ShowMessage("Contract", "There is no market registered under this name");
                             return true;
                         }
 
@@ -611,7 +612,7 @@ namespace Economy.scripts
                         Dictionary<string, MyDefinitionBase> options;
                         if (!Support.FindPhysicalParts(itemName, out content, out options))
                         {
-                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "The item specified doesn't seem valid");
+                            MyAPIGateway.Utilities.ShowMessage("Contract", "The item specified doesn't seem valid");
                             return true;
                         }
 
@@ -705,7 +706,7 @@ namespace Economy.scripts
                         }
                         else
                         {
-                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "You don't have an active contract");
+                            MyAPIGateway.Utilities.ShowMessage("Contract", "You don't have an active contract");
                         }
                         return true;
                     }
@@ -721,12 +722,12 @@ namespace Economy.scripts
                             }
                             else
                             {
-                                MyAPIGateway.Utilities.ShowMessage("CONTRACT", "The contract can not be closed");
+                                MyAPIGateway.Utilities.ShowMessage("Contract", "The contract can not be closed");
                             }
                         }
                         else
                         {
-                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No contract with this number");
+                            MyAPIGateway.Utilities.ShowMessage("Contract", "No contract with this number");
                         }
                         return true;
                     }
@@ -746,13 +747,13 @@ namespace Economy.scripts
                         }
                         else
                         {
-                            MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No contract with this number");
+                            MyAPIGateway.Utilities.ShowMessage("Contract", "No contract with this number");
                         }
                         return true;
                     }
 
-                    MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Wrong command");
-                    MyAPIGateway.Utilities.ShowMessage("CONTRACT", "See '/ehelp contract' for more details.");
+                    MyAPIGateway.Utilities.ShowMessage("Contract", "Wrong command");
+                    MyAPIGateway.Utilities.ShowMessage("Contract", "See '/ehelp contract' for more details.");
 
                     return true;
                 }
@@ -763,12 +764,12 @@ namespace Economy.scripts
                     if (mission != null)
                     {
                         MyAPIGateway.Utilities.ShowMissionScreen("Active Contract", mission.MissionId + ". ", mission.GetName(), mission.GetFullDescription(), null, "OK");
-                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Active contract: {0}", ClientConfig.MissionId);
+                        MyAPIGateway.Utilities.ShowMessage("Contract", "Active contract: {0}", ClientConfig.MissionId);
                         //MyAPIGateway.Utilities.GetObjectiveLine().Show();
                     }
                     else
                     {
-                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", "No active contract");
+                        MyAPIGateway.Utilities.ShowMessage("Contract", "No active contract");
                     }
 
                     if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }
