@@ -126,12 +126,12 @@ namespace Economy.scripts
         /// <summary>
         /// pattern defines how to open a delivery mission (contract).
         /// </summary>
-        const string MissionDeliverOpenPattern = @"(?:/contract)\s+(?:open)\s+(?<type>delivery)\s+(?<qty>((\d+(\.\d*)?)|(\.\d+)))\s+(?:(?:""(?<item>[^""]|.*?)"")|(?<item>[^\s]*))\s+(?:(?:""(?<market>[^""]|.*?)"")|(?<market>[^\s]*))(?:\s+(?<reward>[+]?((\d+(\.\d*)?)|(\.\d+))))";
+        const string MissionDeliverOpenPattern = @"(?:/contract)\s+(?:open|create)\s+(?<type>delivery|deliver)\s+(?<qty>((\d+(\.\d*)?)|(\.\d+)))\s+(?:(?:""(?<item>[^""]|.*?)"")|(?<item>[^\s]*))\s+(?:(?:""(?<market>[^""]|.*?)"")|(?<market>[^\s]*))(?:\s+(?<reward>[+]?((\d+(\.\d*)?)|(\.\d+))))";
 
         /// <summary>
         /// pattern defines how to open a destroy mission
         /// </summary>
-        const string MissionDestroyOpenPattern = @"(?:/contract)\s+(?:open)\s+(?<type>destroy)(?:\s+((?:""(?<name>[^""]|.*?)"")|(?<name>[^\s]*)))?(?:\s+(?<reward>[+]?((\d+(\.\d*)?)|(\.\d+))))";
+        const string MissionDestroyOpenPattern = @"(?:/contract)\s+(?:open|create)\s+(?<type>destroy|dispose)(?:\s+((?:""(?<name>[^""]|.*?)"")|(?<name>[^\s]*)))?(?:\s+(?<reward>[+]?((\d+(\.\d*)?)|(\.\d+))))";
 
         #endregion
 
@@ -141,10 +141,10 @@ namespace Economy.scripts
         private bool _isClientRegistered;
         private bool _isServerRegistered;
         private bool _delayedConnectionRequest;
-        private Timer _timer1Events; // 1 second.
+        private Timer _timer2Events; // 1 second.
         private Timer _timer10Events; // 10 seconds.
         private Timer _timer3600Events; // 1 hour.
-        private bool _timer1Block;
+        private bool _timer2Block;
         private bool _timer10Block;
         private bool _timer3600Block;
 
@@ -285,9 +285,9 @@ namespace Economy.scripts
             // start the timer last, as all data should be loaded before this point.
             // TODO: use a single timer, and a counter.
             ServerLogger.WriteStart("Attaching Event 1 timer.");
-            _timer1Events = new Timer(1000);
-            _timer1Events.Elapsed += Timer1EventsOnElapsed;
-            _timer1Events.Start();
+            _timer2Events = new Timer(2000);
+            _timer2Events.Elapsed += Timer2EventsOnElapsed;
+            _timer2Events.Start();
 
             ServerLogger.WriteStart("Attaching Event 10 timer.");
             _timer10Events = new Timer(10000);
@@ -343,13 +343,13 @@ namespace Economy.scripts
                 if (MyAPIGateway.Utilities != null)
                     MyAPIGateway.Utilities.UnregisterMessageHandler(EconomyConsts.EconInterModId, _interModMessageHandler);
 
-                if (_timer1Events != null)
+                if (_timer2Events != null)
                 {
                     ServerLogger.WriteStop("Stopping Event 1 timer.");
-                    _timer1Events.Stop();
-                    _timer1Events.Elapsed -= Timer1EventsOnElapsed;
-                    _timer1Events.Close();
-                    _timer1Events = null;
+                    _timer2Events.Stop();
+                    _timer2Events.Elapsed -= Timer2EventsOnElapsed;
+                    _timer2Events.Close();
+                    _timer2Events = null;
                 }
 
                 if (_timer10Events != null)
@@ -460,10 +460,8 @@ namespace Economy.scripts
             }
         }
 
-        private void Timer1EventsOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        private void Timer2EventsOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            // commented out while there isn't any use.  TODO: remove later if there isn't any more need.
-
             // DO NOT SET ANY IN GAME API CALLS HERE. AT ALL!
             MyAPIGateway.Utilities.InvokeOnGameThread(delegate
             {
@@ -471,17 +469,18 @@ namespace Economy.scripts
                 if (MyAPIGateway.Players == null || MyAPIGateway.Entities == null || MyAPIGateway.Session == null || MyAPIGateway.Utilities == null)
                     return;
 
-                if (_timer1Block) // prevent other any additional calls into this code while it may still be running.
+                if (_timer2Block) // prevent other any additional calls into this code while it may still be running.
                     return;
 
-                _timer1Block = true;
+                _timer2Block = true;
                 try
                 {
                     // Any processing needs to occur in here, as it will be on the main thread, and hopefully thread safe.
+                    MissionManager.CheckMissions();
                 }
                 finally
                 {
-                    _timer1Block = false;
+                    _timer2Block = false;
                 }
             });
         }
@@ -502,7 +501,6 @@ namespace Economy.scripts
                 try
                 {
                     // Any processing needs to occur in here, as it will be on the main thread, and hopefully thread safe.
-                    MissionManager.CheckMissions();
                     MarketManager.CheckTradeTimeouts();
                 }
                 finally
