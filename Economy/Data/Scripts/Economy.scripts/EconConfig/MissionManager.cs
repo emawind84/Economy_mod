@@ -13,35 +13,31 @@ namespace Economy.scripts.EconConfig
     {
         public static void CheckMissions()
         {
-            if (EconomyScript.Instance.Data != null)
+            foreach (var mission in EconomyScript.Instance.Data?.Missions?.Where(m => m.AcceptedBy != 0).ToList())
             {
-                foreach (var mission in EconomyScript.Instance.Data?.Missions?.Where(m => m.AcceptedBy != 0))
+                if (DateTime.Now > mission.Expiration)
                 {
-                    if (DateTime.Now > mission.Expiration)
-                    {
-                        EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {mission.MissionId} failed by {mission.AcceptedBy}");
+                    EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {mission.MissionId} failed by {mission.AcceptedBy}");
 
-                        var senderAccount = AccountManager.FindAccount(mission.AcceptedBy);
-                        if (senderAccount != null)
-                        {
-                            senderAccount.MissionId = 0;
-                            senderAccount.Date = DateTime.Now;
-                            MessageUpdateClient.SendAccountMessage(senderAccount);
-                        }
-
-                        MessageMission.SendMissionFailed(mission);
-                        mission.ResetMission();
-                        MessageUpdateClient.SendServerMissions();
-                    }
-                    else if (mission.CheckMission())
+                    var senderAccount = AccountManager.FindAccount(mission.AcceptedBy);
+                    if (senderAccount != null)
                     {
-                        mission.CompleteMission();
-                        RemoveMission(mission);
-                        MessageMission.SendMissionComplete(mission);
-                        MessageUpdateClient.SendServerMissions();
-                        EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {mission.MissionId} completed by {mission.AcceptedBy}");
-                        break;
+                        senderAccount.MissionId = 0;
+                        senderAccount.Date = DateTime.Now;
+                        MessageUpdateClient.SendAccountMessage(senderAccount);
                     }
+
+                    MessageMission.SendMissionFailed(mission);
+                    mission.ResetMission();
+                    MessageUpdateClient.SendServerMissions();
+                }
+                else if (mission.CheckMission())
+                {
+                    mission.CompleteMission();
+                    RemoveMission(mission);
+                    MessageMission.SendMissionComplete(mission);
+                    MessageUpdateClient.SendServerMissions();
+                    EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {mission.MissionId} completed by {mission.AcceptedBy}");
                 }
             }
         }
