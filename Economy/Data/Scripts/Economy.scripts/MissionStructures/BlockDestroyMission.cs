@@ -75,12 +75,12 @@
                 entity = entities.FirstOrDefault(e => e.DisplayName.Equals(EntityName, StringComparison.OrdinalIgnoreCase));
             }
 
-            IMyPlayer creator = MyAPIGateway.Players.GetPlayer(CreatedBy);
-            if (entity != null && creator?.Character != null)
+            IMyPlayer player = MyAPIGateway.Players.GetPlayer(AcceptedBy);
+            if (entity != null && player?.Character != null)
             {
                 EntityId = entity.EntityId;
                 EntityName = entity.DisplayName;
-                BoundingSphereD boundingSphereD = new BoundingSphereD(creator.GetPosition(), 500);
+                BoundingSphereD boundingSphereD = new BoundingSphereD(player.GetPosition(), 500);
                 if (boundingSphereD.Contains(entity.GetPosition()) == ContainmentType.Contains)
                 {
                     EntityLastPosition = entity.GetPosition();
