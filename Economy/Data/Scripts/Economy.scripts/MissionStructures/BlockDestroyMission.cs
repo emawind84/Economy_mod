@@ -30,6 +30,8 @@
         [ProtoMember(204)]
         public SerializableVector3D EntityLastPosition { get; set; }
 
+        private IMyHudNotification _hudNotification;
+
         public override string GetName()
         {
             return "A delicate matter for discreet pilot.";
@@ -75,7 +77,7 @@
                 entity = entities.FirstOrDefault(e => e.DisplayName.Equals(EntityName, StringComparison.OrdinalIgnoreCase));
             }
 
-            IMyPlayer player = MyAPIGateway.Players.GetPlayer(AcceptedBy);
+            IMyPlayer player = MyAPIGateway.Players.GetPlayer(CreatedBy);
             if (entity != null && player?.Character != null)
             {
                 EntityId = entity.EntityId;
@@ -114,9 +116,16 @@
                         EntityIntegrity = totalIntegrity;
                     }
 
+                    if (_hudNotification == null)
+                    {
+                        _hudNotification = MyAPIGateway.Utilities.CreateNotification("", 5000, "White");
+                    }
+                    _hudNotification.Hide();
+                    _hudNotification.Text = $"{EntityName}: {EntityIntegrity}/{totalIntegrity}";
+                    _hudNotification.Show();
                     //MyAPIGateway.Utilities.ShowMessage("Server", $"Integrity: {EntityIntegrity}/{totalIntegrity}");
-                    Sandbox.Game.MyVisualScriptLogicProvider.ClearNotifications(MyAPIGateway.Session.Player.IdentityId);
-                    Sandbox.Game.MyVisualScriptLogicProvider.ShowNotification($"{EntityName}: {EntityIntegrity}/{totalIntegrity}", 5000, "White", MyAPIGateway.Session.Player.IdentityId);
+                    //Sandbox.Game.MyVisualScriptLogicProvider.ClearNotifications(MyAPIGateway.Session.Player.IdentityId);
+                    //Sandbox.Game.MyVisualScriptLogicProvider.ShowNotification($"{EntityName}: {EntityIntegrity}/{totalIntegrity}", 5000, "White", MyAPIGateway.Session.Player.IdentityId);
                 }
             }
         }

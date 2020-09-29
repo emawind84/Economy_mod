@@ -15,7 +15,7 @@ namespace Economy.scripts.EconConfig
         {
             foreach (var mission in EconomyScript.Instance.Data?.Missions?.Where(m => m.AcceptedBy != 0).ToList())
             {
-                if (DateTime.Now > mission.Expiration)
+                if (DateTime.Now > mission.Expiration?.Date)
                 {
                     EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {mission.MissionId} failed by {mission.AcceptedBy}");
 

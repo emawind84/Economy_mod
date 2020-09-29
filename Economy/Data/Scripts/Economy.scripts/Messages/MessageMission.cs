@@ -4,15 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using EconConfig;
+    using Economy.scripts.EconStructures;
     using MissionStructures;
     using ProtoBuf;
-    using Sandbox.Definitions;
     using Sandbox.ModAPI;
-    using VRage;
-    using VRage.Game;
     using VRage.Game.ModAPI;
     using VRage.ModAPI;
-    using VRage.ObjectBuilders;
     using VRageMath;
 
     /*
@@ -198,7 +195,7 @@
                         {
                             AreaSphere = new BoundingSphereD(position, 50),
                             Reward = 100,
-                            OfferDate = DateTime.Now,
+                            OfferDate = EconDateTime.Now,
                         }, 0);
 
                         MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", "Contract No. {0} has been opened and {1:#,##0.00} {2} has been detracted from your account", newMission.MissionId, newMission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
@@ -269,7 +266,8 @@
                         if (mission != null && (mission.AcceptedBy == SenderSteamId || mission.AcceptedBy == 0))
                         {
                             mission.AcceptedBy = SenderSteamId;
-                            mission.Expiration = DateTime.Now + TimeSpan.FromSeconds(DefaultMissionDeadline);
+                            mission.Expiration = EconDateTime.Now;
+                            mission.Expiration.Date += TimeSpan.FromSeconds(DefaultMissionDeadline);
 
                             MessageUpdateClient.SendServerMissions();
                             ConnectionHelper.SendMessageToPlayer(SenderSteamId, new MessageMission { CommandType = PlayerMissionManage.AcceptMission, MissionId = MissionId });
