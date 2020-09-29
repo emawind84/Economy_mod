@@ -33,10 +33,10 @@
         
         public DeliverItemToTradeZoneMission() : base()
         {
-            MessageSell.OnSellCommandExecuted += CheckDeliverAndUpdateStatus;
+            MessageSell.OnSellCommandExecuted += TryDeliverItem;
         }
 
-        private bool CheckDeliverAndUpdateStatus(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity, out string message)
+        private bool TryDeliverItem(ulong senderSteamId, ulong marketId, string itemTypeId, string itemSubtypeName, decimal itemQuantity, out string message)
         {
             message = null;  // sending a direct text message here might result in multiple request so we use an output variable
             IMyPlayer player;
@@ -54,7 +54,7 @@
                     if (itemQuantity == ItemQuantity)
                     {
                         Delivered = true;
-                        MessageSell.OnSellCommandExecuted -= CheckDeliverAndUpdateStatus;
+                        MessageSell.OnSellCommandExecuted -= TryDeliverItem;
                         MessageUpdateClient.SendServerMissions();
                     }
                     else
