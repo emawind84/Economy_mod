@@ -102,8 +102,6 @@
       <Link>modinfo.sbmi</Link>
       <SubType>Designer</SubType>
     </None>
-    <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
