@@ -4,15 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using EconConfig;
+    using Economy.scripts.EconStructures;
     using MissionStructures;
     using ProtoBuf;
-    using Sandbox.Definitions;
     using Sandbox.ModAPI;
-    using VRage;
-    using VRage.Game;
     using VRage.Game.ModAPI;
     using VRage.ModAPI;
-    using VRage.ObjectBuilders;
     using VRageMath;
 
     /*
@@ -58,18 +55,7 @@
 
         public static void SendMissionComplete(MissionBaseStruct mission)
         {
-            mission.RemoveGps();
-            EconomyScript.Instance.ClientConfig.Missions.Remove(mission);
-
-            ConnectionHelper.SendMessageToServer(new MessageMission { CommandType = PlayerMissionManage.MissionComplete, MissionId = mission.MissionId });
-
-            string msg = mission.GetSuccessMessage();
-            if (mission.Reward != 0)
-                msg += string.Format("\r\n{0:#,##0.00} {1} Transferred to your account.", mission.Reward, EconomyScript.Instance.ClientConfig.ServerConfig.CurrencyName);
-            //MyAPIGateway.Utilities.ShowMissionScreen("Mission:" + mission.MissionId, "", "Completed", msg, null, "Okay");
-
-            Sandbox.Game.MyVisualScriptLogicProvider.ReplaceQuestlogDetail(0, msg, true, MyAPIGateway.Session.Player.IdentityId);
-            Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogDetailCompleted(0, true, MyAPIGateway.Session.Player.IdentityId);
+            ConnectionHelper.SendMessageToPlayer(mission.AcceptedBy, new MessageMission { CommandType = PlayerMissionManage.MissionComplete, MissionId = mission.MissionId });
         }
 
         public static void SendMissionFailed(MissionBaseStruct mission)
@@ -85,11 +71,6 @@
         public static void SendCreateSampleMissions(bool startMission)
         {
             ConnectionHelper.SendMessageToServer(new MessageMission { CommandType = PlayerMissionManage.AddSample, StartMission = startMission });
-        }
-
-        public static void SendSyncMission(MissionBaseStruct mission)
-        {
-            ConnectionHelper.SendMessageToServer(new MessageMission { CommandType = PlayerMissionManage.SyncMission, Mission = mission });
         }
 
         public static void SendPrepareMission(MissionBaseStruct mission)
@@ -135,7 +116,7 @@
                 case PlayerMissionManage.AcceptMission:
                     {
                         HudManager.FetchMission(MissionId);
-                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Contract No. {0} has been accepted", MissionId);
+                        MyAPIGateway.Utilities.ShowMessage("Contract", "Contract No. {0} has been accepted", MissionId);
                         if (!HudManager.UpdateHud()) { MyAPIGateway.Utilities.ShowMessage("Error", "Hud Failed"); }
                     }
                     break;
@@ -144,7 +125,28 @@
                         HudManager.FetchMission(-1);
                         var currentMission = EconomyScript.Instance.ClientConfig.Missions.FirstOrDefault(m => m.MissionId == MissionId);
                         currentMission.RemoveGps();
-                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", "Contract No. {0} has been abandoned", MissionId);
+                        MyAPIGateway.Utilities.ShowMessage("Contract", "Contract No. {0} has been abandoned", MissionId);
+                    }
+                    break;
+
+                case PlayerMissionManage.MissionComplete:
+                    {
+                        var clientConfig = EconomyScript.Instance.ClientConfig;
+                        var mission = clientConfig.Missions.FirstOrDefault(m => m.MissionId == MissionId);
+                        mission.RemoveGps();
+                        clientConfig.Missions.Remove(mission);
+
+                        string msg = mission.GetSuccessMessage();
+                        if (mission.Reward != 0)
+                            msg += string.Format("\r\n{0:#,##0.00} {1} Transferred to your account.", mission.Reward, clientConfig.ServerConfig.CurrencyName);
+                        //MyAPIGateway.Utilities.ShowMissionScreen("Mission:" + mission.MissionId, "", "Completed", msg, null, "Okay");
+
+                        Sandbox.Game.MyVisualScriptLogicProvider.ReplaceQuestlogDetail(0, msg, true, MyAPIGateway.Session.Player.IdentityId);
+                        Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogDetailCompleted(0, true, MyAPIGateway.Session.Player.IdentityId);
+
+                        clientConfig.LazyMissionText = MissionId + " Mission: completed";
+                        HudManager.FetchMission(0);
+                        HudManager.UpdateHud();
                     }
                     break;
 
@@ -156,7 +158,7 @@
                         Sandbox.Game.MyVisualScriptLogicProvider.ReplaceQuestlogDetail(0, "Contract failed.", true, MyAPIGateway.Session.Player.IdentityId);
                         Sandbox.Game.MyVisualScriptLogicProvider.SetQuestlogDetailCompleted(0, true, MyAPIGateway.Session.Player.IdentityId);
 
-                        MyAPIGateway.Utilities.ShowMessage("CONTRACT", $"Contract No. {currentMission.MissionId} failed");
+                        MyAPIGateway.Utilities.ShowMessage("Contract", $"Contract No. {currentMission.MissionId} failed");
                         HudManager.FetchMission(0);
                     }
                     break;
@@ -180,7 +182,7 @@
                     var entities = new HashSet<IMyEntity>();
                     MyAPIGateway.Entities.GetEntities(entities);
                     MessageClientTextMessage.SendMessage(SenderSteamId, "Server", $"entities in world: {entities.Count()}");
-                    //MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", (MissionId + " server side"));
+                    //MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", (MissionId + " server side"));
                     break;
 
                 case PlayerMissionManage.AddSample:
@@ -193,10 +195,10 @@
                         {
                             AreaSphere = new BoundingSphereD(position, 50),
                             Reward = 100,
-                            OfferDate = DateTime.Now,
+                            OfferDate = EconDateTime.Now,
                         }, 0);
 
-                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract No. {0} has been opened and {1:#,##0.00} {2} has been detracted from your account", newMission.MissionId, newMission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                        MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", "Contract No. {0} has been opened and {1:#,##0.00} {2} has been detracted from your account", newMission.MissionId, newMission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                         MessageUpdateClient.SendServerMissions();
                     }
                     break;
@@ -209,7 +211,7 @@
                     }
                     else
                     {
-                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", messageToSender);
+                        MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", messageToSender);
                     }
                     break;
 
@@ -218,7 +220,7 @@
                         var senderAccount = AccountManager.FindOrCreateAccount(SenderSteamId, SenderDisplayName, SenderLanguage);
                         if (senderAccount.BankBalance < Mission.Reward)
                         {
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "You don't have enough credits to open this contract");
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", "You don't have enough credits to open this contract");
                             break;
                         }
 
@@ -227,22 +229,10 @@
                         senderAccount.BankBalance -= Mission.Reward;
                         senderAccount.Date = DateTime.Now;
 
-                        MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been opened and {1:#,##0.00} {2} has been detracted from your account", Mission.MissionId, Mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                        MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", "Contract number {0} has been opened and {1:#,##0.00} {2} has been detracted from your account", Mission.MissionId, Mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                         MessageUpdateClient.SendAccountMessage(senderAccount);
                         MessageUpdateClient.SendServerMissions();
                         EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {Mission.MissionId} created by {SenderSteamId}");
-                    }
-                    break;
-
-                case PlayerMissionManage.SyncMission:
-                    {
-                        var mission = GetMission(Mission.MissionId);
-                        EconomyScript.Instance.Data.Missions.Remove(mission);
-                        EconomyScript.Instance.Data.Missions.Add(Mission);
-                        //mission.AcceptedBy = Mission.AcceptedBy;
-                        //mission.SeenBriefing = Mission.SeenBriefing;
-                        //mission.Expiration = Mission.Expiration;
-                        MessageUpdateClient.SendServerMissions();
                     }
                     break;
 
@@ -263,7 +253,7 @@
                                 MessageUpdateClient.SendAccountMessage(playerAccount);
                             }
                             RemoveMission(mission);
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "Contract number {0} has been closed, {1:#,##0.00} {2} has been refunded into your account", mission.MissionId, mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", "Contract number {0} has been closed, {1:#,##0.00} {2} has been refunded into your account", mission.MissionId, mission.Reward, EconomyScript.Instance.ServerConfig.CurrencyName);
                             MessageUpdateClient.SendServerMissions();
                             EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {MissionId} closed by {SenderSteamId}");
                         }
@@ -276,7 +266,8 @@
                         if (mission != null && (mission.AcceptedBy == SenderSteamId || mission.AcceptedBy == 0))
                         {
                             mission.AcceptedBy = SenderSteamId;
-                            mission.Expiration = DateTime.Now + TimeSpan.FromSeconds(DefaultMissionDeadline);
+                            mission.Expiration = EconDateTime.Now;
+                            mission.Expiration.Date += TimeSpan.FromSeconds(DefaultMissionDeadline);
 
                             MessageUpdateClient.SendServerMissions();
                             ConnectionHelper.SendMessageToPlayer(SenderSteamId, new MessageMission { CommandType = PlayerMissionManage.AcceptMission, MissionId = MissionId });
@@ -289,7 +280,7 @@
                         }
                         else
                         {
-                            MessageClientTextMessage.SendMessage(SenderSteamId, "CONTRACT", "The contract has been accepted already by another pilot");
+                            MessageClientTextMessage.SendMessage(SenderSteamId, "Contract", "The contract has been accepted already by another pilot");
                         }
                     }
                     break;
@@ -298,14 +289,7 @@
                     {
                         // This should process the mission reward if appropriate and then delete from server.
                         // We aren't archiving finished missions.
-                        var mission = GetMission(MissionId);
-                        if (mission != null && mission.AcceptedBy == SenderSteamId)
-                        {
-                            mission.CompleteMission();
-                            RemoveMission(mission);
-                            MessageUpdateClient.SendServerMissions();
-                            EconomyScript.Instance.ServerLogger.WriteInfo($"Contract {MissionId} completed by {SenderSteamId}");
-                        }
+                        // moved to MissionManager
                     }
                     break;
 
@@ -442,38 +426,22 @@
             }, 0);
         }
 
-        private static readonly FastResourceLock ExecutionLock = new FastResourceLock();
-
+        [Obsolete("Replaced with MissionManager", false)]
         private static MissionBaseStruct CreateMission(MissionBaseStruct mission, ulong assignToPlayer)
         {
-            using (ExecutionLock.AcquireExclusiveUsing())
-            {
-                int newMissionId = 1;
-                if (EconomyScript.Instance.Data.Missions.Count != 0)
-                    newMissionId = EconomyScript.Instance.Data.Missions.Max(m => m.MissionId) + 1;
-
-                mission.MissionId = newMissionId;
-                mission.AcceptedBy = assignToPlayer;
-                
-                EconomyScript.Instance.Data.Missions.Add(mission);
-            }
-            return mission;
+            return MissionManager.CreateMission(mission, assignToPlayer);
         }
 
+        [Obsolete("Replaced with MissionManager", false)]
         private static void RemoveMission(MissionBaseStruct mission)
         {
-            using (ExecutionLock.AcquireExclusiveUsing())
-            {
-                EconomyScript.Instance.Data.Missions.Remove(mission);
-            }
+            MissionManager.RemoveMission(mission);
         }
 
+        [Obsolete("Replaced with MissionManager", false)]
         private static MissionBaseStruct GetMission(int missionId)
         {
-            using (ExecutionLock.AcquireExclusiveUsing())
-            {
-                return EconomyScript.Instance.Data.Missions.FirstOrDefault(m => m.MissionId == missionId);
-            }
+            return MissionManager.GetMission(missionId);
         }
     }
 }

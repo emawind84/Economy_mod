@@ -435,8 +435,6 @@
 
                                     MessageUpdateClient.SendAccountMessage(accountToBuy);
                                     MessageUpdateClient.SendAccountMessage(accountToSell);
-
-                                    //MissionManager.OnSellCommandExecuted?.Invoke(SenderSteamId, accountToBuy.SteamId, ItemTypeId, ItemSubTypeName, ItemQuantity);
                                 }
                                 else
                                 {

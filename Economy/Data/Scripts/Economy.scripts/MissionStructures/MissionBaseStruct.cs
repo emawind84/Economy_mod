@@ -3,6 +3,7 @@ namespace Economy.scripts.MissionStructures
     using System;
     using System.Text;
     using System.Xml.Serialization;
+    using Economy.scripts.EconStructures;
     using ProtoBuf;
     using Sandbox.ModAPI;
 
@@ -50,7 +51,7 @@ namespace Economy.scripts.MissionStructures
 
         protected MissionBaseStruct()
         {
-            OfferDate = DateTime.Now;
+            OfferDate = EconDateTime.Now;
             if (MyAPIGateway.Multiplayer.IsServer)
                 CreatedBy = MyAPIGateway.Multiplayer.ServerId;
             if (MyAPIGateway.Session.Player != null)
@@ -105,13 +106,13 @@ namespace Economy.scripts.MissionStructures
         /// When the Mission was created and listed.
         /// </summary>
         [ProtoMember(108)]
-        public DateTime OfferDate { get; set; }
+        public EconDateTime OfferDate { get; set; }
 
         /// <summary>
         /// The Date/Time that a Mission will expire (if it expires).
         /// </summary>
         [ProtoMember(109)]
-        public DateTime? Expiration { get; set; }
+        public EconDateTime Expiration { get; set; }
 
         /// <summary>
         /// If the assigned player has been presented with the Briefing yet.
@@ -155,6 +156,11 @@ namespace Economy.scripts.MissionStructures
             return string.Empty;
         }
 
+        /// <summary>
+        /// Validate and initialize the mission, Executed on server.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public virtual bool PrepareMission(out string message)
         {
             message = "";
@@ -162,7 +168,12 @@ namespace Economy.scripts.MissionStructures
         }
 
         /// <summary>
-        /// Checks if the mission has met it's criteria and someone has won.
+        /// Executed on client, should update the hud and give feedback to the player.
+        /// </summary>
+        public virtual void UpdateAfterSimulation() { }
+
+        /// <summary>
+        /// Checks if the mission has met it's criteria and someone has won. Executed on server.
         /// </summary>
         /// <returns></returns>
         public virtual bool CheckMission()
@@ -171,7 +182,7 @@ namespace Economy.scripts.MissionStructures
         }
 
         /// <summary>
-        /// Complete the mission
+        /// Complete the mission, this method is executed on server.
         /// </summary>
         public virtual void CompleteMission() {}
 
@@ -214,9 +225,9 @@ namespace Economy.scripts.MissionStructures
                 description.AppendLine($"- Accepted by: {acceptedBy?.DisplayName ?? "Unknown"}");
             }
 
-            if (Expiration != null)
+            if (Expiration?.Date != null)
             {
-                var timeleft = (Expiration - DateTime.Now);
+                var timeleft = Expiration.Date - DateTime.Now;
                 //description.AppendLine($"- Valid until: {Expiration?.ToString("dddd, dd MMMM yyyy HH:mm:ss") ?? "NA"}");
                 description.AppendLine($"- Time left: {timeleft.Value.Hours}H {timeleft.Value.Minutes}MIN");
             }
