@@ -18,5 +18,10 @@ namespace Economy.scripts.InterModAPI
         {
             EconomyScript.Instance.ProcessMessage(Command);
         }
+
+        public override void ProcessServer()
+        {
+            EconomyScript.Instance.ProcessMessage(Command);
+        }
     }
 }
