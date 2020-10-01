@@ -115,6 +115,7 @@
     <Compile Include="EconConfig\EconDataManager.cs" />
     <Compile Include="EconStructures\EconDataStruct.cs" />
     <Compile Include="EconConfig\MarketManager.cs" />
+    <Compile Include="EconStructures\EconDateTime.cs" />
     <Compile Include="EconStructures\ServerConfigUpdateStuct.cs" />
     <Compile Include="InterModAPI\EconPayUser.cs" />
     <Compile Include="InterModAPI\EconInterModBase.cs" />
