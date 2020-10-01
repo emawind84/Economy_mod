@@ -239,6 +239,7 @@ namespace Economy.scripts
             {
                 ClientLogger.WriteStart("RegisterMessageHandler");
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(EconomyConsts.ConnectionId, _messageHandler);
+                MyAPIGateway.Multiplayer.RegisterMessageHandler(EconomyConsts.TorchApiConnectionId, _interModMessageHandler);
                 MyAPIGateway.Utilities.RegisterMessageHandler(EconomyConsts.EconInterModId, _interModMessageHandler);
             }
 
@@ -263,6 +264,7 @@ namespace Economy.scripts
 
             ServerLogger.WriteStart("RegisterMessageHandler");
             MyAPIGateway.Multiplayer.RegisterMessageHandler(EconomyConsts.ConnectionId, _messageHandler);
+            MyAPIGateway.Multiplayer.RegisterMessageHandler(EconomyConsts.TorchApiConnectionId, _interModMessageHandler);
             MyAPIGateway.Utilities.RegisterMessageHandler(EconomyConsts.EconInterModId, _interModMessageHandler);
 
             ServerLogger.WriteStart("LoadBankContent");
@@ -313,8 +315,8 @@ namespace Economy.scripts
                 {
                     ClientLogger.WriteStop("UnregisterMessageHandler");
                     MyAPIGateway.Multiplayer.UnregisterMessageHandler(EconomyConsts.ConnectionId, _messageHandler);
-                    if (MyAPIGateway.Utilities != null)
-                        MyAPIGateway.Utilities.UnregisterMessageHandler(EconomyConsts.EconInterModId, _interModMessageHandler);
+                    MyAPIGateway.Multiplayer.UnregisterMessageHandler(EconomyConsts.TorchApiConnectionId, _interModMessageHandler);
+                    MyAPIGateway.Utilities?.UnregisterMessageHandler(EconomyConsts.EconInterModId, _interModMessageHandler);
                 }
 
                 if (DelayedConnectionRequestTimer != null)
@@ -331,8 +333,8 @@ namespace Economy.scripts
             {
                 ServerLogger.WriteStop("UnregisterMessageHandler");
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(EconomyConsts.ConnectionId, _messageHandler);
-                if (MyAPIGateway.Utilities != null)
-                    MyAPIGateway.Utilities.UnregisterMessageHandler(EconomyConsts.EconInterModId, _interModMessageHandler);
+                MyAPIGateway.Multiplayer.UnregisterMessageHandler(EconomyConsts.TorchApiConnectionId, _interModMessageHandler);
+                MyAPIGateway.Utilities?.UnregisterMessageHandler(EconomyConsts.EconInterModId, _interModMessageHandler);
 
                 if (_timer1Events != null)
                 {
@@ -530,7 +532,7 @@ namespace Economy.scripts
         #endregion
 
         #region command list
-        private bool ProcessMessage(string messageText)
+        public bool ProcessMessage(string messageText)
         {
             Match match; // used by the Regular Expression to test user input.
                          // this list is going to get messy since the help and commands themself tell user the same thing 

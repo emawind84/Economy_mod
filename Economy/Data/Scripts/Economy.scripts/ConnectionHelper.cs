@@ -1,9 +1,11 @@
 ﻿namespace Economy.scripts
 {
+    using Economy.scripts.InterModAPI;
     using Economy.scripts.Messages;
     using Sandbox.ModAPI;
     using System;
     using System.Collections.Generic;
+    using VRage;
     using VRage.Game.ModAPI;
 
     /// <summary>
@@ -38,7 +40,8 @@
             try
             {
                 byte[] byteData = MyAPIGateway.Utilities.SerializeToBinary(message);
-                MyAPIGateway.Multiplayer.SendMessageToServer(EconomyConsts.ConnectionId, byteData);
+                var compressedData = MyCompression.Compress(byteData);
+                MyAPIGateway.Multiplayer.SendMessageToServer(EconomyConsts.ConnectionId, compressedData);
             }
             catch (Exception ex)
             {
@@ -82,7 +85,8 @@
             try
             {
                 byte[] byteData = MyAPIGateway.Utilities.SerializeToBinary(message);
-                MyAPIGateway.Multiplayer.SendMessageTo(EconomyConsts.ConnectionId, byteData, steamId);
+                var compressedData = MyCompression.Compress(byteData);
+                MyAPIGateway.Multiplayer.SendMessageTo(EconomyConsts.ConnectionId, compressedData, steamId);
             }
             catch (Exception ex)
             {
@@ -117,7 +121,8 @@
 
             try
             {
-                message = MyAPIGateway.Utilities.SerializeFromBinary<MessageBase>(rawData);
+                var o = MyCompression.Decompress(rawData);
+                message = MyAPIGateway.Utilities.SerializeFromBinary<MessageBase>(o);
             }
             catch (Exception ex)
             {
@@ -163,7 +168,8 @@
 
             try
             {
-                message = MyAPIGateway.Utilities.SerializeFromBinary<EconInterModBase>(byteData);
+                var o = MyCompression.Decompress(byteData);
+                message = MyAPIGateway.Utilities.SerializeFromBinary<EconInterModBase>(o);
             }
             catch
             {

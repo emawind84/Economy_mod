@@ -2,6 +2,7 @@
 {
     using ProtoBuf;
     using Sandbox.ModAPI;
+    using VRage;
 
     /// <summary>
     /// Base class to manage the Economy API. This should not be changed.
@@ -27,7 +28,8 @@
         public void SendEconomyMessage()
         {
             byte[] byteData = MyAPIGateway.Utilities.SerializeToBinary(this);
-            MyAPIGateway.Utilities.SendModMessage(EconInterModChannel, byteData);
+            var compressedData = MyCompression.Compress(byteData);
+            MyAPIGateway.Utilities.SendModMessage(EconInterModChannel, compressedData);
         }
     }
 }

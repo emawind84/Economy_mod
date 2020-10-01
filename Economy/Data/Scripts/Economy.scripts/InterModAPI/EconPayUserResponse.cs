@@ -1,4 +1,4 @@
-﻿namespace Economy.scripts.Messages
+﻿namespace Economy.scripts.InterModAPI
 {
     using ProtoBuf;
 
@@ -18,15 +18,13 @@
         [ProtoMember(201)]
         public EconPayUserMessage Message;
 
-        public override void ProcessServer()
-        {
-            // This is processed by the Caller.
-        }
+        [ProtoMember(202)]
+        public long TransactionId;
 
-        public static void SendMessage(long callbackModChannel, long transactionId, EconPayUserMessage message)
+        public static void SendMessage(ushort callbackModChannel, long transactionId, EconPayUserMessage message)
         {
             EconPayUserResponse response = new EconPayUserResponse { Message = message, TransactionId = transactionId };
-            response.SendResponseMessage(callbackModChannel, transactionId);
+            response.SendResponseMessage(callbackModChannel);
         }
     }
 }

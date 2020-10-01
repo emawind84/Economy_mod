@@ -1,7 +1,8 @@
-﻿namespace Economy.scripts.Messages
+﻿namespace Economy.scripts.InterModAPI
 {
     using Economy.scripts;
     using Economy.scripts.EconConfig;
+    using Economy.scripts.Messages;
     using ProtoBuf;
     using Sandbox.ModAPI;
     using System;
@@ -20,6 +21,9 @@
 
         [ProtoMember(204)]
         public string Reason;
+
+        [ProtoMember(205)]
+        public long TransactionId;
 
         public override void ProcessServer()
         {

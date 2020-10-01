@@ -2,6 +2,7 @@
 {
     using Sandbox.ModAPI;
     using System;
+    using VRage;
     using VRage.Game;
 
     /// <summary>
@@ -70,7 +71,8 @@
 
             try
             {
-                message = MyAPIGateway.Utilities.SerializeFromBinary<EconInterModBase>(byteData);
+                var o = MyCompression.Decompress(byteData);
+                message = MyAPIGateway.Utilities.SerializeFromBinary<EconInterModBase>(o);
             }
             catch
             {

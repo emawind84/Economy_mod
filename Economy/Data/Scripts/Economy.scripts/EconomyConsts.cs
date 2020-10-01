@@ -44,6 +44,8 @@
         /// </remarks>
         public const ushort ConnectionId = 46912;
 
+        public const ushort TorchApiConnectionId = 21384;
+
         /// <summary>
         /// This Id is used specifically for registering for inter Mod messageing, and is used to talk to the Economy Mod.
         /// </summary>
