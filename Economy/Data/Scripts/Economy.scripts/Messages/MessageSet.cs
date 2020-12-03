@@ -115,10 +115,11 @@
 
         public override void ProcessServer()
         {
+            var isServer = MyAPIGateway.Session.IsServer;
             var player = MyAPIGateway.Players.FindPlayerBySteamId(SenderSteamId);
 
             // Only Admin can change Npc Market prices.
-            if (!player.IsAdmin() && MarketId == EconomyConsts.NpcMerchantId)
+            if (!isServer && !player.IsAdmin() && MarketId == EconomyConsts.NpcMerchantId)
             {
                 EconomyScript.Instance.ServerLogger.WriteWarning("A Player without Admin \"{0}\" {1} attempted to set Default Market characteristics of item {2}/{3} to Quantity={4}.", SenderDisplayName, SenderSteamId, ItemTypeId, ItemSubTypeName, ItemQuantity);
                 return;

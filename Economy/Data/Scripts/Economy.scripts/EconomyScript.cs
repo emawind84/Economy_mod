@@ -581,7 +581,7 @@ namespace Economy.scripts
 
             #region mission
 
-            if (ClientConfig.ServerConfig.EnableMissions)
+            if (ClientConfig != null && ClientConfig.ServerConfig.EnableMissions)
             {
                 //placeholder for testing mission success triggers without using a timer yet
                 if (split[0].Equals("/mission", StringComparison.InvariantCultureIgnoreCase) && MyAPIGateway.Session.Player.IsAdmin() && split.Length >= 2)
@@ -1094,7 +1094,7 @@ namespace Economy.scripts
             //       /set "market zone" sell "item name" <price>
             // we need a /check command maybe to display current blacklist status, price and stock too
 
-            if (split[0].Equals("/set", StringComparison.InvariantCultureIgnoreCase) && MyAPIGateway.Session.Player.IsAdmin())
+            if (split[0].Equals("/set", StringComparison.InvariantCultureIgnoreCase) && (MyAPIGateway.Session.IsServer || MyAPIGateway.Session.Player.IsAdmin()))
             {
                 match = Regex.Match(messageText, SetPattern, RegexOptions.IgnoreCase);
                 if (match.Success)
