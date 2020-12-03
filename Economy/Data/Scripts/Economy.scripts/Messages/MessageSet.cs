@@ -161,7 +161,7 @@
                     //ItemQuantity = Math.Round(ItemQuantity, 0);  // Or do we just round the number?
                 }
 
-                if (ItemQuantity <= 0)
+                if (ItemQuantity < 0)
                 {
                     MessageClientTextMessage.SendMessage(SenderSteamId, "SET", "Invalid quantity specified");
                     return;
